@@ -167,6 +167,60 @@
             grid-column: 1 / -1;
         }
 
+        /* --- MODAL STYLES --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 5, 15, 0.95);
+            backdrop-filter: blur(10px);
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-wrapper {
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+        }
+
+        .modal-content {
+            border: 2px solid #00e5ff;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
+            background: #000;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: #00e5ff;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: #fff;
+            text-shadow: 0 0 10px #fff;
+            transform: scale(1.1);
+        }
+
         /* Mobile responsiveness for header */
         @media (max-width: 600px) {
             header {
@@ -194,12 +248,25 @@
         <div class="status-message">Establishing connection to the galactic network...</div>
     </main>
 
+    <!-- Video Modal Overlay -->
+    <div id="videoModal" class="modal">
+        <div class="modal-wrapper">
+            <span class="close-btn" id="closeModal">&times;</span>
+            <div class="modal-content iframe-container" id="modalIframeContainer">
+                <!-- Iframe injected here via JS -->
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- JAVASCRIPT / API LOGIC ---
         const API_KEY = 'AIzaSyBFTCtKzfMfpaj3aFjFPLbaysw5atwy_LA'; // Your YouTube API Key
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
         const videoContainer = document.getElementById('videoContainer');
+        const videoModal = document.getElementById('videoModal');
+        const closeModal = document.getElementById('closeModal');
+        const modalIframeContainer = document.getElementById('modalIframeContainer');
 
         // Function to fetch videos from YouTube Data API v3
         async function fetchVideos(query = 'space documentaries 4k') {
@@ -223,7 +290,7 @@
             }
         }
 
-        // Function to render embedded videos to the page
+        // Function to render clickable thumbnails to the page
         function displayVideos(videos) {
             videoContainer.innerHTML = ''; // Clear container
             
@@ -238,25 +305,59 @@
                 
                 const card = document.createElement('div');
                 card.className = 'video-card';
+                card.style.cursor = 'pointer'; // Make it obvious you can click
                 
-                // Constructing the card with an embedded iframe
+                // Constructing the card with a thumbnail and a neon play button
                 card.innerHTML = `
-                    <div class="iframe-container">
-                        <iframe 
-                            src="https://www.youtube.com/embed/${videoId}" 
-                            title="${snippet.title}" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowfullscreen>
-                        </iframe>
+                    <div style="position: relative;">
+                        <img src="${snippet.thumbnails.high.url}" alt="${snippet.title}" style="width: 100%; height: 180px; object-fit: cover; border-bottom: 2px solid #222;">
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border: 2px solid #00e5ff; box-shadow: 0 0 15px rgba(0, 229, 255, 0.5);">
+                            <span style="color: #00e5ff; font-size: 20px; margin-left: 4px;">▶</span>
+                        </div>
                     </div>
                     <div class="video-info">
                         <h3 class="video-title">${snippet.title}</h3>
                         <p class="video-channel">${snippet.channelTitle}</p>
                     </div>
                 `;
+
+                // When the card is clicked, open the massive viewer
+                card.addEventListener('click', () => {
+                    openModal(videoId, snippet.title);
+                });
+
                 videoContainer.appendChild(card);
             });
         }
+
+        // Modal Interaction Logic
+        function openModal(videoId, title) {
+            // Inject the iframe with autoplay turned on
+            modalIframeContainer.innerHTML = `
+                <iframe 
+                    src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+                    title="${title}" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            `;
+            videoModal.classList.add('show');
+        }
+
+        function closeVideoModal() {
+            videoModal.classList.remove('show');
+            modalIframeContainer.innerHTML = ''; // Delete iframe to stop video playback
+        }
+
+        // Close when clicking the "X"
+        closeModal.addEventListener('click', closeVideoModal);
+
+        // Close when clicking the dark space background outside the video
+        videoModal.addEventListener('click', (e) => {
+            if (e.target === videoModal) {
+                closeVideoModal();
+            }
+        });
 
         // Event Listeners for searching
         searchBtn.addEventListener('click', () => {
