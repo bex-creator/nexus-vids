@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus | The Galactic Video Hub</title>
+    <style>
+        /* --- SPACE THEME CSS --- */
+        body {
+            background-color: #050510;
+            background-image: radial-gradient(circle at top right, #1b003a, #000000), 
+                              radial-gradient(circle at bottom left, #001133, #000000);
+            color: #e0eaff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        /* Twinkling stars effect background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: transparent url('https://www.transparenttextures.com/patterns/stardust.png') repeat;
+            opacity: 0.3;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        header {
+            background: rgba(10, 10, 30, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #3a0088;
+            box-shadow: 0 0 20px rgba(157, 0, 255, 0.5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 {
+            margin: 0;
+            color: #00e5ff;
+            text-shadow: 0 0 5px #00e5ff, 0 0 15px #00e5ff, 0 0 30px #00e5ff;
+            letter-spacing: 4px;
+            font-size: 28px;
+            text-transform: uppercase;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        input {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid #00e5ff;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            outline: none;
+            box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.5), 0 0 10px rgba(0, 229, 255, 0.5);
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: none;
+            background: #00e5ff;
+            color: #000;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px #00e5ff;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #fff;
+            box-shadow: 0 0 20px #fff;
+        }
+
+        #videoContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+            padding: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .video-card {
+            background: rgba(20, 20, 40, 0.6);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #333;
+            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+        }
+
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 25px rgba(157, 0, 255, 0.4);
+            border-color: #9d00ff;
+        }
+
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            border-bottom: 2px solid #222;
+            background-color: #000;
+        }
+
+        .iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .video-info {
+            padding: 15px;
+        }
+
+        .video-title {
+            font-size: 16px;
+            margin: 0 0 8px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-channel {
+            font-size: 13px;
+            color: #8899cc;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .video-channel::before {
+            content: '🛰️';
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 50px;
+            font-size: 20px;
+            color: #8899cc;
+            grid-column: 1 / -1;
+        }
+
+        /* Mobile responsiveness for header */
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px 20px;
+            }
+            #videoContainer {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🚀 NEXUS</h1>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search the cosmos...">
+            <button id="searchBtn">Engage</button>
+        </div>
+    </header>
+
+    <main id="videoContainer">
+        <div class="status-message">Establishing connection to the galactic network...</div>
+    </main>
+
+    <script>
+        // --- JAVASCRIPT / API LOGIC ---
+        const API_KEY = 'AIzaSyBFTCtKzfMfpaj3aFjFPLbaysw5atwy_LA'; // Your YouTube API Key
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const videoContainer = document.getElementById('videoContainer');
+
+        // Function to fetch videos from YouTube Data API v3
+        async function fetchVideos(query = 'space documentaries 4k') {
+            // Loading state
+            videoContainer.innerHTML = '<div class="status-message">Scanning sectors... 🛸</div>';
+
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=16&q=${encodeURIComponent(query)}&type=video&key=${API_KEY}`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+                
+                displayVideos(data.items);
+            } catch (error) {
+                console.error("Transmission error:", error);
+                videoContainer.innerHTML = `<div class="status-message" style="color: #ff3366;">Error connecting to network: ${error.message}</div>`;
+            }
+        }
+
+        // Function to render embedded videos to the page
+        function displayVideos(videos) {
+            videoContainer.innerHTML = ''; // Clear container
+            
+            if (!videos || videos.length === 0) {
+                videoContainer.innerHTML = '<div class="status-message">No transmissions found in this sector.</div>';
+                return;
+            }
+
+            videos.forEach(video => {
+                const videoId = video.id.videoId;
+                const snippet = video.snippet;
+                
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                
+                // Constructing the card with an embedded iframe
+                card.innerHTML = `
+                    <div class="iframe-container">
+                        <iframe 
+                            src="https://www.youtube.com/embed/${videoId}" 
+                            title="${snippet.title}" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    <div class="video-info">
+                        <h3 class="video-title">${snippet.title}</h3>
+                        <p class="video-channel">${snippet.channelTitle}</p>
+                    </div>
+                `;
+                videoContainer.appendChild(card);
+            });
+        }
+
+        // Event Listeners for searching
+        searchBtn.addEventListener('click', () => {
+            if (searchInput.value.trim()) fetchVideos(searchInput.value.trim());
+        });
+
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && searchInput.value.trim()) {
+                fetchVideos(searchInput.value.trim());
+            }
+        });
+
+        // Load default space-themed videos right when the page opens
+        fetchVideos();
+    </script>
+
+</body>
+</html>
