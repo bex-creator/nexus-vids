@@ -4,141 +4,330 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus | The Galactic Video Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* --- SPACE THEME CSS --- */
-        body {
-            background-color: #050510;
-            background-image: radial-gradient(circle at top right, #1b003a, #000000), 
-                              radial-gradient(circle at bottom left, #001133, #000000);
-            color: #e0eaff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            min-height: 100vh;
+        /* --- CSS VARIABLES & THEME --- */
+        :root {
+            --bg-base: #030308;
+            --bg-surface: rgba(20, 20, 35, 0.6);
+            --bg-surface-hover: rgba(30, 30, 50, 0.8);
+            --accent-cyan: #00e5ff;
+            --accent-cyan-glow: rgba(0, 229, 255, 0.4);
+            --accent-purple: #9d00ff;
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --sidebar-width: 240px;
         }
 
-        /* Twinkling stars effect background */
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(27, 0, 58, 0.5), transparent 25%), 
+                radial-gradient(circle at 85% 30%, rgba(0, 17, 51, 0.5), transparent 25%);
+            color: var(--text-main);
+            font-family: 'Space Grotesk', sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden; /* Prevent body scroll, handle scroll in main area */
+            display: flex;
+        }
+
+        /* Animated Stardust */
         body::before {
             content: '';
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: transparent url('https://www.transparenttextures.com/patterns/stardust.png') repeat;
-            opacity: 0.3;
+            opacity: 0.2;
             z-index: -1;
             pointer-events: none;
+            animation: drift 100s linear infinite;
         }
 
-        header {
-            background: rgba(10, 10, 30, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 20px 40px;
+        @keyframes drift {
+            from { background-position: 0 0; }
+            to { background-position: -1000px 500px; }
+        }
+
+        /* --- LAYOUT --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(5, 5, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #3a0088;
-            box-shadow: 0 0 20px rgba(157, 0, 255, 0.5);
-            position: sticky;
-            top: 0;
+            flex-direction: column;
+            padding: 20px 0;
             z-index: 100;
         }
 
-        h1 {
+        .main-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .content-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px 40px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
+
+        /* --- SIDEBAR COMPONENTS --- */
+        .brand {
+            padding: 0 24px 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand h1 {
             margin: 0;
-            color: #00e5ff;
-            text-shadow: 0 0 5px #00e5ff, 0 0 15px #00e5ff, 0 0 30px #00e5ff;
-            letter-spacing: 4px;
-            font-size: 28px;
+            color: var(--text-main);
+            font-size: 24px;
+            letter-spacing: 2px;
             text-transform: uppercase;
+        }
+
+        .brand span {
+            color: var(--accent-cyan);
+            text-shadow: 0 0 10px var(--accent-cyan-glow);
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 0 12px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.2s;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        .nav-item.active {
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--accent-cyan);
+            border-left: 3px solid var(--accent-cyan);
+        }
+
+        .nav-item svg { width: 20px; height: 20px; }
+
+        /* --- TOP HEADER --- */
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: rgba(3, 3, 8, 0.7);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 90;
         }
 
         .search-container {
             display: flex;
-            gap: 10px;
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
+            position: relative;
         }
 
-        input {
-            flex-grow: 1;
-            padding: 10px 15px;
-            border-radius: 20px;
-            border: 1px solid #00e5ff;
-            background: rgba(0, 0, 0, 0.6);
-            color: #fff;
+        .search-container input {
+            width: 100%;
+            padding: 12px 20px 12px 45px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .search-container input:focus {
             outline: none;
-            box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.2);
-            transition: all 0.3s ease;
+            border-color: var(--accent-cyan);
+            background: rgba(0, 229, 255, 0.05);
+            box-shadow: 0 0 15px var(--accent-cyan-glow);
         }
 
-        input:focus {
-            box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.5), 0 0 10px rgba(0, 229, 255, 0.5);
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
         }
 
-        button {
-            padding: 10px 20px;
-            border-radius: 20px;
+        .search-btn {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            bottom: 5px;
+            padding: 0 20px;
+            border-radius: 25px;
             border: none;
-            background: #00e5ff;
+            background: var(--accent-cyan);
             color: #000;
+            font-weight: 700;
             cursor: pointer;
-            font-weight: bold;
-            text-transform: uppercase;
-            box-shadow: 0 0 10px #00e5ff;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
         }
 
-        button:hover {
+        .search-btn:hover {
             background: #fff;
-            box-shadow: 0 0 20px #fff;
+            box-shadow: 0 0 15px var(--accent-cyan-glow);
         }
 
+        /* --- CATEGORY CHIPS (RECOMMENDED FILTER) --- */
+        .categories-bar {
+            display: flex;
+            gap: 12px;
+            padding: 20px 0;
+            overflow-x: auto;
+            scrollbar-width: none; /* Firefox */
+        }
+        .categories-bar::-webkit-scrollbar { display: none; }
+
+        .chip {
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .chip:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .chip.active {
+            background: var(--text-main);
+            color: #000;
+            border-color: var(--text-main);
+        }
+
+        /* --- VIDEO GRID --- */
         #videoContainer {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 30px;
-            padding: 40px;
-            max-width: 1600px;
-            margin: 0 auto;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            padding-bottom: 50px;
         }
 
         .video-card {
-            background: rgba(20, 20, 40, 0.6);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #333;
-            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            cursor: pointer;
+            group: card;
         }
 
-        .video-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 25px rgba(157, 0, 255, 0.4);
-            border-color: #9d00ff;
-        }
-
-        .iframe-container {
+        .thumbnail-wrapper {
             position: relative;
             width: 100%;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-            height: 0;
-            border-bottom: 2px solid #222;
-            background-color: #000;
+            padding-bottom: 56.25%; /* 16:9 */
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s;
         }
 
-        .iframe-container iframe {
+        .video-card:hover .thumbnail-wrapper {
+            border-color: var(--accent-purple);
+            box-shadow: 0 5px 20px rgba(157, 0, 255, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .thumbnail-img {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
         }
 
-        .video-info {
-            padding: 15px;
+        .video-card:hover .thumbnail-img {
+            transform: scale(1.05);
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .video-card:hover .play-overlay { opacity: 1; }
+
+        .play-btn {
+            width: 50px; height: 50px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 15px var(--accent-cyan-glow);
+            color: var(--accent-cyan);
+            padding-left: 4px; /* Center the triangle */
+        }
+
+        .video-details {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .channel-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; color: #fff; font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .video-text {
+            display: flex; flex-direction: column; gap: 4px;
         }
 
         .video-title {
             font-size: 16px;
-            margin: 0 0 8px;
+            font-weight: 600;
+            margin: 0;
             line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -146,109 +335,118 @@
             overflow: hidden;
         }
 
-        .video-channel {
+        .video-meta {
             font-size: 13px;
-            color: #8899cc;
+            color: var(--text-muted);
             margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .video-channel::before {
-            content: '🛰️';
         }
 
         .status-message {
-            text-align: center;
-            padding: 50px;
-            font-size: 20px;
-            color: #8899cc;
             grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px;
+            font-size: 18px;
+            color: var(--text-muted);
+            background: var(--bg-surface);
+            border-radius: 12px;
+            border: 1px dashed var(--border-color);
         }
 
-        /* --- MODAL STYLES --- */
+        /* --- MODAL (CINEMATIC VIEWER) --- */
         .modal {
             display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 5, 15, 0.95);
-            backdrop-filter: blur(10px);
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 5, 0.95);
+            backdrop-filter: blur(15px);
+            align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s ease;
         }
-
-        .modal.show {
-            display: flex;
-            opacity: 1;
-        }
-
-        .modal-wrapper {
-            position: relative;
-            width: 90%;
-            max-width: 1200px;
-        }
-
+        .modal.show { display: flex; opacity: 1; }
+        .modal-wrapper { position: relative; width: 90%; max-width: 1100px; }
+        
         .modal-content {
-            border: 2px solid #00e5ff;
-            border-radius: 12px;
-            box-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
-            background: #000;
-            overflow: hidden;
-            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0, 229, 255, 0.15);
+            background: #000; overflow: hidden; width: 100%;
+        }
+
+        .iframe-container {
+            position: relative; width: 100%; padding-bottom: 56.25%; height: 0;
+        }
+        .iframe-container iframe {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
         }
 
         .close-btn {
-            position: absolute;
-            top: -40px;
-            right: 0;
-            color: #00e5ff;
-            font-size: 35px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            position: absolute; top: -50px; right: 0;
+            color: var(--text-muted); font-size: 40px; cursor: pointer; transition: all 0.2s;
         }
+        .close-btn:hover { color: var(--accent-cyan); text-shadow: 0 0 10px var(--accent-cyan-glow); transform: scale(1.1); }
 
-        .close-btn:hover {
-            color: #fff;
-            text-shadow: 0 0 10px #fff;
-            transform: scale(1.1);
-        }
-
-        /* Mobile responsiveness for header */
-        @media (max-width: 600px) {
-            header {
-                flex-direction: column;
-                gap: 15px;
-                padding: 15px 20px;
-            }
-            #videoContainer {
-                padding: 20px;
-            }
+        /* Responsive */
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .top-header { padding: 15px 20px; }
+            .content-area { padding: 10px 20px; }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>🚀 NEXUS</h1>
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Search the cosmos...">
-            <button id="searchBtn">Engage</button>
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <h1><span>🚀</span> Nexus</h1>
         </div>
-    </header>
+        <nav class="nav-links">
+            <a class="nav-item active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                Home
+            </a>
+            <a class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                Explore
+            </a>
+            <a class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                Transmissions
+            </a>
+            <a class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                Library
+            </a>
+        </nav>
+    </aside>
 
-    <main id="videoContainer">
-        <div class="status-message">Establishing connection to the galactic network...</div>
-    </main>
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+        <header class="top-header">
+            <div class="search-container">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="searchInput" placeholder="Search the cosmos...">
+                <button class="search-btn" id="searchBtn">Engage</button>
+            </div>
+            <!-- Dummy User Avatar -->
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--border-color); border: 2px solid var(--accent-purple); cursor: pointer; overflow: hidden;">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=NexusUser&backgroundColor=transparent" alt="User" style="width:100%; height:100%;">
+            </div>
+        </header>
 
-    <!-- Video Modal Overlay -->
+        <div class="content-area">
+            <!-- Filter / Category Chips -->
+            <div class="categories-bar" id="categoriesBar">
+                <!-- Javascript will populate these chips -->
+            </div>
+
+            <!-- Video Grid -->
+            <main id="videoContainer">
+                <div class="status-message">Initializing quantum uplink...</div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Cinematic Video Modal -->
     <div id="videoModal" class="modal">
         <div class="modal-wrapper">
             <span class="close-btn" id="closeModal">&times;</span>
@@ -259,19 +457,80 @@
     </div>
 
     <script>
-        // --- JAVASCRIPT / API LOGIC ---
-        const API_KEY = 'AIzaSyBFTCtKzfMfpaj3aFjFPLbaysw5atwy_LA'; // Your YouTube API Key
+        const API_KEY = 'AIzaSyBFTCtKzfMfpaj3aFjFPLbaysw5atwy_LA'; 
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
         const videoContainer = document.getElementById('videoContainer');
         const videoModal = document.getElementById('videoModal');
         const closeModal = document.getElementById('closeModal');
         const modalIframeContainer = document.getElementById('modalIframeContainer');
+        const categoriesBar = document.getElementById('categoriesBar');
 
-        // Function to fetch videos from YouTube Data API v3
-        async function fetchVideos(query = 'space documentaries 4k') {
-            // Loading state
-            videoContainer.innerHTML = '<div class="status-message">Scanning sectors... 🛸</div>';
+        // --- RECOMMENDATION & CATEGORY SYSTEM ---
+        const categories = [
+            { name: "All", query: "space documentaries 4k" },
+            { name: "Recommended", query: "astrophysics OR universe secrets OR black holes documentary" }, // Curated "Recommended" query
+            { name: "Black Holes", query: "black holes documentary" },
+            { name: "James Webb", query: "james webb space telescope new images" },
+            { name: "Nebulas", query: "beautiful nebulas space" },
+            { name: "Mars Missions", query: "mars rover spacex" },
+            { name: "Quantum Physics", query: "quantum physics explained" }
+        ];
+
+        let activeCategoryIndex = 0;
+
+        function renderCategories() {
+            categoriesBar.innerHTML = '';
+            categories.forEach((cat, index) => {
+                const btn = document.createElement('button');
+                btn.className = `chip ${index === activeCategoryIndex ? 'active' : ''}`;
+                btn.textContent = cat.name;
+                btn.onclick = () => {
+                    activeCategoryIndex = index;
+                    renderCategories(); // Re-render to update 'active' class
+                    searchInput.value = ''; // Clear search bar
+                    fetchVideos(cat.query);
+                };
+                categoriesBar.appendChild(btn);
+            });
+        }
+
+        // Initialize Categories
+        renderCategories();
+
+        // --- TIME FORMATTING ---
+        // Converts "2023-10-15T..." to "3 months ago"
+        function timeAgo(dateString) {
+            const date = new Date(dateString);
+            const seconds = Math.floor((new Date() - date) / 1000);
+            let interval = Math.floor(seconds / 31536000);
+            if (interval > 1) return interval + " years ago";
+            interval = Math.floor(seconds / 2592000);
+            if (interval > 1) return interval + " months ago";
+            interval = Math.floor(seconds / 86400);
+            if (interval > 1) return interval + " days ago";
+            interval = Math.floor(seconds / 3600);
+            if (interval > 1) return interval + " hours ago";
+            return "Just now";
+        }
+
+        // Extract first letter for channel avatar
+        function getChannelInitial(channelName) {
+            return channelName ? channelName.charAt(0).toUpperCase() : '🛰️';
+        }
+
+        // --- FETCHING & RENDERING VIDEOS ---
+        async function fetchVideos(query) {
+            videoContainer.innerHTML = `
+                <div class="status-message">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2" class="spin"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
+                    <p style="margin-top: 15px;">Scanning deep space sectors...</p>
+                </div>
+            `;
+            // Quick inline CSS for the loading spinner
+            if(!document.getElementById('spinStyle')) {
+                document.head.insertAdjacentHTML('beforeend', '<style id="spinStyle">.spin { animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }</style>');
+            }
 
             const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=16&q=${encodeURIComponent(query)}&type=video&key=${API_KEY}`;
             
@@ -279,23 +538,19 @@
                 const response = await fetch(url);
                 const data = await response.json();
                 
-                if (data.error) {
-                    throw new Error(data.error.message);
-                }
-                
+                if (data.error) throw new Error(data.error.message);
                 displayVideos(data.items);
             } catch (error) {
                 console.error("Transmission error:", error);
-                videoContainer.innerHTML = `<div class="status-message" style="color: #ff3366;">Error connecting to network: ${error.message}</div>`;
+                videoContainer.innerHTML = `<div class="status-message" style="color: #ff4444;">Error decoding transmission: ${error.message}</div>`;
             }
         }
 
-        // Function to render clickable thumbnails to the page
         function displayVideos(videos) {
-            videoContainer.innerHTML = ''; // Clear container
+            videoContainer.innerHTML = '';
             
             if (!videos || videos.length === 0) {
-                videoContainer.innerHTML = '<div class="status-message">No transmissions found in this sector.</div>';
+                videoContainer.innerHTML = '<div class="status-message">No transmissions found in this sector. Try another frequency.</div>';
                 return;
             }
 
@@ -305,34 +560,33 @@
                 
                 const card = document.createElement('div');
                 card.className = 'video-card';
-                card.style.cursor = 'pointer'; // Make it obvious you can click
                 
-                // Constructing the card with a thumbnail and a neon play button
                 card.innerHTML = `
-                    <div style="position: relative;">
-                        <img src="${snippet.thumbnails.high.url}" alt="${snippet.title}" style="width: 100%; height: 180px; object-fit: cover; border-bottom: 2px solid #222;">
-                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border: 2px solid #00e5ff; box-shadow: 0 0 15px rgba(0, 229, 255, 0.5);">
-                            <span style="color: #00e5ff; font-size: 20px; margin-left: 4px;">▶</span>
+                    <div class="thumbnail-wrapper">
+                        <img class="thumbnail-img" src="${snippet.thumbnails.high.url}" alt="${snippet.title}">
+                        <div class="play-overlay">
+                            <div class="play-btn">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            </div>
                         </div>
                     </div>
-                    <div class="video-info">
-                        <h3 class="video-title">${snippet.title}</h3>
-                        <p class="video-channel">${snippet.channelTitle}</p>
+                    <div class="video-details">
+                        <div class="channel-avatar">${getChannelInitial(snippet.channelTitle)}</div>
+                        <div class="video-text">
+                            <h3 class="video-title" title="${snippet.title}">${snippet.title}</h3>
+                            <p class="video-meta">${snippet.channelTitle}</p>
+                            <p class="video-meta">${timeAgo(snippet.publishedAt)}</p>
+                        </div>
                     </div>
                 `;
 
-                // When the card is clicked, open the massive viewer
-                card.addEventListener('click', () => {
-                    openModal(videoId, snippet.title);
-                });
-
+                card.addEventListener('click', () => openModal(videoId, snippet.title));
                 videoContainer.appendChild(card);
             });
         }
 
-        // Modal Interaction Logic
+        // --- MODAL LOGIC ---
         function openModal(videoId, title) {
-            // Inject the iframe with autoplay turned on
             modalIframeContainer.innerHTML = `
                 <iframe 
                     src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
@@ -346,32 +600,32 @@
 
         function closeVideoModal() {
             videoModal.classList.remove('show');
-            modalIframeContainer.innerHTML = ''; // Delete iframe to stop video playback
+            modalIframeContainer.innerHTML = ''; 
         }
 
-        // Close when clicking the "X"
         closeModal.addEventListener('click', closeVideoModal);
-
-        // Close when clicking the dark space background outside the video
         videoModal.addEventListener('click', (e) => {
-            if (e.target === videoModal) {
-                closeVideoModal();
+            if (e.target === videoModal) closeVideoModal();
+        });
+
+        // --- SEARCH EVENT LISTENERS ---
+        function triggerSearch() {
+            const val = searchInput.value.trim();
+            if (val) {
+                // When manually searching, un-highlight category chips
+                activeCategoryIndex = -1; 
+                renderCategories();
+                fetchVideos(val);
             }
-        });
+        }
 
-        // Event Listeners for searching
-        searchBtn.addEventListener('click', () => {
-            if (searchInput.value.trim()) fetchVideos(searchInput.value.trim());
-        });
-
+        searchBtn.addEventListener('click', triggerSearch);
         searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && searchInput.value.trim()) {
-                fetchVideos(searchInput.value.trim());
-            }
+            if (e.key === 'Enter') triggerSearch();
         });
 
-        // Load default space-themed videos right when the page opens
-        fetchVideos();
+        // Start by loading the default category
+        fetchVideos(categories[0].query);
     </script>
 
 </body>
