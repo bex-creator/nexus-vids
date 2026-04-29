@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus | The Galactic Video Hub</title>
+    <title>Galactic Nexus | Video Hub</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -31,450 +31,286 @@
             font-family: 'Space Grotesk', sans-serif;
             margin: 0;
             height: 100vh;
-            overflow: hidden; /* Prevent body scroll, handle scroll in main area */
+            overflow: hidden;
             display: flex;
         }
 
-        /* Animated Stardust */
         body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: transparent url('https://www.transparenttextures.com/patterns/stardust.png') repeat;
-            opacity: 0.2;
-            z-index: -1;
-            pointer-events: none;
+            opacity: 0.2; z-index: -1; pointer-events: none;
             animation: drift 100s linear infinite;
         }
-
-        @keyframes drift {
-            from { background-position: 0 0; }
-            to { background-position: -1000px 500px; }
-        }
+        @keyframes drift { from { background-position: 0 0; } to { background-position: -1000px 500px; } }
 
         /* --- LAYOUT --- */
         .sidebar {
-            width: var(--sidebar-width);
-            background: rgba(5, 5, 15, 0.8);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            padding: 20px 0;
-            z-index: 100;
+            width: var(--sidebar-width); background: rgba(5, 5, 15, 0.8);
+            backdrop-filter: blur(20px); border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column; padding: 20px 0; z-index: 100;
         }
+        .main-wrapper { flex-grow: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .content-area { flex-grow: 1; overflow-y: auto; padding: 20px 40px; }
 
-        .main-wrapper {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .content-area {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 20px 40px;
-        }
-
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-base); }
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
 
-        /* --- SIDEBAR COMPONENTS --- */
-        .brand {
-            padding: 0 24px 30px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .brand h1 {
-            margin: 0;
-            color: var(--text-main);
-            font-size: 24px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .brand span {
-            color: var(--accent-cyan);
-            text-shadow: 0 0 10px var(--accent-cyan-glow);
-        }
-
-        .nav-links {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            padding: 0 12px;
-        }
-
+        /* --- SIDEBAR --- */
+        .brand { padding: 0 24px 30px; display: flex; align-items: center; gap: 12px; }
+        .brand h1 { margin: 0; color: var(--text-main); font-size: 24px; letter-spacing: 4px; text-transform: uppercase; cursor: pointer;}
+        .brand span { color: var(--accent-cyan); text-shadow: 0 0 10px var(--accent-cyan-glow); margin-right: 4px; }
+        
+        .nav-links { display: flex; flex-direction: column; gap: 5px; padding: 0 12px; }
         .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 12px 16px;
-            color: var(--text-muted);
-            text-decoration: none;
-            border-radius: 10px;
-            transition: all 0.2s;
-            font-weight: 600;
-            cursor: pointer;
+            display: flex; align-items: center; gap: 15px; padding: 12px 16px;
+            color: var(--text-muted); text-decoration: none; border-radius: 10px;
+            transition: all 0.2s; font-weight: 600; cursor: pointer;
         }
-
-        .nav-item:hover, .nav-item.active {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-main);
-        }
-
-        .nav-item.active {
-            background: rgba(0, 229, 255, 0.1);
-            color: var(--accent-cyan);
-            border-left: 3px solid var(--accent-cyan);
-        }
-
+        .nav-item:hover, .nav-item.active { background: rgba(255, 255, 255, 0.05); color: var(--text-main); }
+        .nav-item.active { background: rgba(0, 229, 255, 0.1); color: var(--accent-cyan); border-left: 3px solid var(--accent-cyan); }
         .nav-item svg { width: 20px; height: 20px; }
 
-        /* --- TOP HEADER --- */
+        /* --- HEADER --- */
         .top-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 40px;
-            background: rgba(3, 3, 8, 0.7);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-color);
-            z-index: 90;
+            display: flex; justify-content: space-between; align-items: center; padding: 20px 40px;
+            background: rgba(3, 3, 8, 0.7); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color); z-index: 90;
         }
-
-        .search-container {
-            display: flex;
-            width: 100%;
-            max-width: 600px;
-            position: relative;
-        }
-
+        .search-container { display: flex; width: 100%; max-width: 600px; position: relative; }
         .search-container input {
-            width: 100%;
-            padding: 12px 20px 12px 45px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
-            border-radius: 30px;
-            color: var(--text-main);
-            font-family: inherit;
-            font-size: 16px;
-            transition: all 0.3s;
+            width: 100%; padding: 12px 20px 12px 45px; background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color); border-radius: 30px; color: var(--text-main);
+            font-family: inherit; font-size: 16px; transition: all 0.3s;
         }
-
-        .search-container input:focus {
-            outline: none;
-            border-color: var(--accent-cyan);
-            background: rgba(0, 229, 255, 0.05);
-            box-shadow: 0 0 15px var(--accent-cyan-glow);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-        }
-
+        .search-container input:focus { outline: none; border-color: var(--accent-cyan); background: rgba(0, 229, 255, 0.05); box-shadow: 0 0 15px var(--accent-cyan-glow); }
+        .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
         .search-btn {
-            position: absolute;
-            right: 5px;
-            top: 5px;
-            bottom: 5px;
-            padding: 0 20px;
-            border-radius: 25px;
-            border: none;
-            background: var(--accent-cyan);
-            color: #000;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
+            position: absolute; right: 5px; top: 5px; bottom: 5px; padding: 0 20px;
+            border-radius: 25px; border: none; background: var(--accent-cyan); color: #000;
+            font-weight: 700; cursor: pointer; transition: all 0.2s;
         }
+        .search-btn:hover { background: #fff; box-shadow: 0 0 15px var(--accent-cyan-glow); }
 
-        .search-btn:hover {
-            background: #fff;
-            box-shadow: 0 0 15px var(--accent-cyan-glow);
-        }
-
-        /* --- CATEGORY CHIPS (RECOMMENDED FILTER) --- */
-        .categories-bar {
-            display: flex;
-            gap: 12px;
-            padding: 20px 0;
-            overflow-x: auto;
-            scrollbar-width: none; /* Firefox */
-        }
+        /* --- CATEGORIES --- */
+        .categories-bar { display: flex; gap: 12px; padding: 20px 0; overflow-x: auto; scrollbar-width: none; }
         .categories-bar::-webkit-scrollbar { display: none; }
-
         .chip {
-            padding: 8px 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            color: var(--text-main);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.3s;
+            padding: 8px 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color);
+            border-radius: 20px; color: var(--text-main); font-size: 14px; font-weight: 600;
+            cursor: pointer; white-space: nowrap; transition: all 0.3s;
         }
-
-        .chip:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .chip.active {
-            background: var(--text-main);
-            color: #000;
-            border-color: var(--text-main);
-        }
+        .chip:hover { background: rgba(255, 255, 255, 0.1); }
+        .chip.active { background: var(--text-main); color: #000; border-color: var(--text-main); }
 
         /* --- VIDEO GRID --- */
-        #videoContainer {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
-            padding-bottom: 50px;
-        }
-
-        .video-card {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            cursor: pointer;
-            group: card;
-        }
-
+        #videoContainer { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; padding-bottom: 50px; }
+        .video-card { display: flex; flex-direction: column; gap: 12px; cursor: pointer; position: relative; }
         .thumbnail-wrapper {
-            position: relative;
-            width: 100%;
-            padding-bottom: 56.25%; /* 16:9 */
-            border-radius: 12px;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            transition: all 0.3s;
+            position: relative; width: 100%; padding-bottom: 56.25%; border-radius: 12px;
+            overflow: hidden; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); transition: all 0.3s;
         }
-
-        .video-card:hover .thumbnail-wrapper {
-            border-color: var(--accent-purple);
-            box-shadow: 0 5px 20px rgba(157, 0, 255, 0.3);
-            transform: translateY(-4px);
+        .video-card:hover .thumbnail-wrapper { border-color: var(--accent-purple); box-shadow: 0 5px 20px rgba(157, 0, 255, 0.3); transform: translateY(-4px); }
+        .thumbnail-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .video-card:hover .thumbnail-img { transform: scale(1.05); }
+        
+        .duration-badge {
+            position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8);
+            color: #fff; padding: 3px 6px; border-radius: 4px; font-size: 12px; font-weight: 600;
         }
-
-        .thumbnail-img {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s;
+        
+        .save-btn {
+            position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6);
+            color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; opacity: 0; transition: all 0.2s; backdrop-filter: blur(4px);
         }
-
-        .video-card:hover .thumbnail-img {
-            transform: scale(1.05);
-        }
+        .save-btn:hover { background: var(--accent-cyan); color: #000; }
+        .save-btn.saved { opacity: 1; background: var(--accent-purple); color: #fff; border: 1px solid #fff; }
+        .video-card:hover .save-btn { opacity: 1; }
 
         .play-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.3); display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s; pointer-events: none;
         }
-
         .video-card:hover .play-overlay { opacity: 1; }
-
         .play-btn {
-            width: 50px; height: 50px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid var(--accent-cyan);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 15px var(--accent-cyan-glow);
-            color: var(--accent-cyan);
-            padding-left: 4px; /* Center the triangle */
+            width: 50px; height: 50px; background: rgba(0, 0, 0, 0.8); border: 2px solid var(--accent-cyan);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 15px var(--accent-cyan-glow); color: var(--accent-cyan); padding-left: 4px;
         }
 
-        .video-details {
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-        }
-
+        .video-details { display: flex; gap: 12px; align-items: flex-start; }
         .channel-avatar {
-            width: 36px; height: 36px;
-            border-radius: 50%;
+            width: 36px; height: 36px; border-radius: 50%;
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
             display: flex; align-items: center; justify-content: center;
-            font-weight: bold; color: #fff; font-size: 14px;
-            flex-shrink: 0;
+            font-weight: bold; color: #fff; font-size: 14px; flex-shrink: 0;
         }
+        .video-text { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+        .video-title { font-size: 16px; font-weight: 600; margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .video-meta { font-size: 13px; color: var(--text-muted); margin: 0; }
 
-        .video-text {
-            display: flex; flex-direction: column; gap: 4px;
-        }
+        /* Skeletons */
+        .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; border-radius: 4px; }
+        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        .video-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin: 0;
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .video-meta {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin: 0;
-        }
-
-        .status-message {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 60px;
-            font-size: 18px;
-            color: var(--text-muted);
-            background: var(--bg-surface);
-            border-radius: 12px;
-            border: 1px dashed var(--border-color);
-        }
-
-        /* --- MODAL (CINEMATIC VIEWER) --- */
+        /* --- FULL WATCH MODAL --- */
         .modal {
-            display: none;
-            position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 5, 0.95);
-            backdrop-filter: blur(15px);
-            align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.3s ease;
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 5, 0.98); backdrop-filter: blur(20px);
+            align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;
         }
         .modal.show { display: flex; opacity: 1; }
-        .modal-wrapper { position: relative; width: 90%; max-width: 1100px; }
+        .modal-wrapper { position: relative; width: 95%; max-width: 1600px; height: 90vh; display: flex; gap: 24px; }
         
-        .modal-content {
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            box-shadow: 0 20px 50px rgba(0, 229, 255, 0.15);
-            background: #000; overflow: hidden; width: 100%;
-        }
-
-        .iframe-container {
-            position: relative; width: 100%; padding-bottom: 56.25%; height: 0;
-        }
-        .iframe-container iframe {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
-        }
-
-        .close-btn {
-            position: absolute; top: -50px; right: 0;
-            color: var(--text-muted); font-size: 40px; cursor: pointer; transition: all 0.2s;
-        }
+        .close-btn { position: absolute; top: -35px; right: 0; color: var(--text-muted); font-size: 35px; cursor: pointer; transition: all 0.2s; z-index: 10; }
         .close-btn:hover { color: var(--accent-cyan); text-shadow: 0 0 10px var(--accent-cyan-glow); transform: scale(1.1); }
 
-        /* Responsive */
-        @media (max-width: 900px) {
+        /* Watch Layout: Left (Player + Info) */
+        .watch-main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding-right: 10px; }
+        .watch-main::-webkit-scrollbar { width: 6px; }
+        .watch-main::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        
+        .iframe-container { width: 100%; padding-bottom: 56.25%; position: relative; background: #000; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0, 229, 255, 0.1); flex-shrink: 0; }
+        .iframe-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+        .watch-info { padding: 20px 0; }
+        .watch-title { font-size: 22px; font-weight: 700; margin: 0 0 10px 0; }
+        .watch-primary-data { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px; }
+        
+        .watch-channel { display: flex; align-items: center; gap: 12px; }
+        .watch-channel-info h4 { margin: 0; font-size: 16px; }
+        .watch-channel-info p { margin: 2px 0 0; font-size: 13px; color: var(--text-muted); }
+        .sub-btn { background: #fff; color: #000; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 700; cursor: pointer; transition: 0.2s; margin-left: 15px; }
+        .sub-btn:hover { background: var(--accent-cyan); }
+        .sub-btn.subscribed { background: rgba(255,255,255,0.1); color: #fff; }
+
+        .watch-actions { display: flex; gap: 10px; }
+        .action-btn { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); border: none; padding: 8px 16px; border-radius: 20px; color: #fff; cursor: pointer; font-family: inherit; font-weight: 600; transition: 0.2s; }
+        .action-btn:hover { background: rgba(255,255,255,0.2); }
+        .action-btn svg { width: 18px; height: 18px; }
+        .action-group { display: flex; background: rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden; }
+        .action-group .action-btn { background: transparent; border-radius: 0; }
+        .action-group .action-btn:first-child { border-right: 1px solid rgba(255,255,255,0.1); }
+        .action-group .action-btn:hover { background: rgba(255,255,255,0.1); }
+
+        .watch-description { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; font-size: 14px; line-height: 1.5; color: #e0e0e0; }
+        .watch-stats { font-weight: 600; margin-bottom: 8px; color: #fff; }
+        
+        .comments-section { margin-top: 24px; }
+        .comments-section h3 { margin-bottom: 15px; }
+        .mock-comment { display: flex; gap: 15px; margin-bottom: 20px; }
+        .mock-comment-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-surface-hover); display: flex; align-items: center; justify-content: center; }
+        .mock-comment-content h5 { margin: 0 0 5px; font-size: 14px; color: var(--text-muted); }
+        .mock-comment-content p { margin: 0; font-size: 14px; }
+
+        /* Watch Layout: Right (Related) */
+        .watch-sidebar { width: 400px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-right: 10px; }
+        .watch-sidebar::-webkit-scrollbar { width: 6px; }
+        .watch-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        
+        .related-card { display: flex; gap: 10px; cursor: pointer; }
+        .related-card .thumbnail-wrapper { width: 160px; padding-bottom: 90px; border-radius: 8px; flex-shrink: 0; }
+        .related-card .video-title { font-size: 14px; -webkit-line-clamp: 2; margin-bottom: 4px; }
+        .related-card .video-meta { font-size: 12px; }
+
+        @media (max-width: 1024px) {
+            .modal-wrapper { flex-direction: column; overflow-y: auto; height: 95vh; padding-top: 30px;}
+            .watch-main, .watch-sidebar { overflow-y: visible; width: 100%; }
             .sidebar { display: none; }
-            .top-header { padding: 15px 20px; }
-            .content-area { padding: 10px 20px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Left Sidebar -->
     <aside class="sidebar">
-        <div class="brand">
-            <h1><span>🚀</span> Nexus</h1>
+        <div class="brand" onclick="goHome()">
+            <h1>N Ξ X U S</h1>
         </div>
         <nav class="nav-links">
-            <a class="nav-item active">
+            <a class="nav-item active" id="navHome" onclick="goHome()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 Home
+            </a>
+            <a class="nav-item" id="navLibrary" onclick="showLibrary()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                Library
             </a>
             <a class="nav-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
                 Explore
             </a>
-            <a class="nav-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-                Transmissions
-            </a>
-            <a class="nav-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-                Library
-            </a>
         </nav>
     </aside>
 
-    <!-- Main Content Area -->
     <div class="main-wrapper">
         <header class="top-header">
             <div class="search-container">
-                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 <input type="text" id="searchInput" placeholder="Search the cosmos...">
                 <button class="search-btn" id="searchBtn">Engage</button>
             </div>
-            <!-- Dummy User Avatar -->
             <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--border-color); border: 2px solid var(--accent-purple); cursor: pointer; overflow: hidden;">
                 <img src="https://api.dicebear.com/7.x/bottts/svg?seed=NexusUser&backgroundColor=transparent" alt="User" style="width:100%; height:100%;">
             </div>
         </header>
 
         <div class="content-area">
-            <!-- Filter / Category Chips -->
-            <div class="categories-bar" id="categoriesBar">
-                <!-- Javascript will populate these chips -->
-            </div>
-
-            <!-- Video Grid -->
-            <main id="videoContainer">
-                <div class="status-message">Initializing quantum uplink...</div>
-            </main>
+            <div class="categories-bar" id="categoriesBar"></div>
+            <h2 id="sectionTitle" style="display:none; margin-top:0;">Your Library (Watch Later)</h2>
+            <main id="videoContainer"></main>
         </div>
     </div>
 
-    <!-- Cinematic Video Modal -->
+    <!-- Full Watch Page Modal -->
     <div id="videoModal" class="modal">
         <div class="modal-wrapper">
             <span class="close-btn" id="closeModal">&times;</span>
-            <div class="modal-content iframe-container" id="modalIframeContainer">
-                <!-- Iframe injected here via JS -->
+            
+            <div class="watch-main">
+                <div class="iframe-container" id="modalIframeContainer"></div>
+                <div class="watch-info" id="modalDetailsContainer"></div>
+            </div>
+
+            <div class="watch-sidebar" id="modalSidebarContainer">
+                <h3 style="margin-top:0;">Up Next</h3>
+                <!-- Related videos go here -->
             </div>
         </div>
     </div>
 
     <script>
         const API_KEY = 'AIzaSyBFTCtKzfMfpaj3aFjFPLbaysw5atwy_LA'; 
-        const searchInput = document.getElementById('searchInput');
-        const searchBtn = document.getElementById('searchBtn');
         const videoContainer = document.getElementById('videoContainer');
-        const videoModal = document.getElementById('videoModal');
-        const closeModal = document.getElementById('closeModal');
-        const modalIframeContainer = document.getElementById('modalIframeContainer');
         const categoriesBar = document.getElementById('categoriesBar');
+        
+        let currentVideos = []; // Store currently loaded videos for the modal sidebar
+        let savedLibrary = JSON.parse(localStorage.getItem('nexus_library')) || [];
 
-        // --- RECOMMENDATION & CATEGORY SYSTEM ---
+        // Mock Generators (Deterministic based on videoId to keep consistent)
+        function getMockData(idStr) {
+            let num = 0; for(let i=0; i<idStr.length; i++) num += idStr.charCodeAt(i);
+            const views = (num * 142 % 5000) + 10;
+            const mins = (num % 25) + 3;
+            const secs = num % 60;
+            const subs = (num * 3 % 900) + 10;
+            return {
+                viewsText: views > 1000 ? (views/1000).toFixed(1) + 'M' : views + 'K',
+                viewsRaw: views * 1000,
+                duration: `${mins}:${secs < 10 ? '0'+secs : secs}`,
+                subsText: subs > 1000 ? (subs/1000).toFixed(1) + 'M' : subs + 'K'
+            };
+        }
+
         const categories = [
             { name: "All", query: "space documentaries 4k" },
-            { name: "Recommended", query: "astrophysics OR universe secrets OR black holes documentary" }, // Curated "Recommended" query
+            { name: "Recommended", query: "astrophysics OR universe secrets OR black holes documentary" },
             { name: "Black Holes", query: "black holes documentary" },
             { name: "James Webb", query: "james webb space telescope new images" },
-            { name: "Nebulas", query: "beautiful nebulas space" },
             { name: "Mars Missions", query: "mars rover spacex" },
-            { name: "Quantum Physics", query: "quantum physics explained" }
+            { name: "Quantum", query: "quantum physics explained" }
         ];
 
         let activeCategoryIndex = 0;
@@ -486,147 +322,237 @@
                 btn.className = `chip ${index === activeCategoryIndex ? 'active' : ''}`;
                 btn.textContent = cat.name;
                 btn.onclick = () => {
+                    document.getElementById('sectionTitle').style.display = 'none';
                     activeCategoryIndex = index;
-                    renderCategories(); // Re-render to update 'active' class
-                    searchInput.value = ''; // Clear search bar
+                    renderCategories();
+                    document.getElementById('searchInput').value = '';
                     fetchVideos(cat.query);
+                    updateNav('navHome');
                 };
                 categoriesBar.appendChild(btn);
             });
         }
-
-        // Initialize Categories
         renderCategories();
 
-        // --- TIME FORMATTING ---
-        // Converts "2023-10-15T..." to "3 months ago"
         function timeAgo(dateString) {
-            const date = new Date(dateString);
-            const seconds = Math.floor((new Date() - date) / 1000);
-            let interval = Math.floor(seconds / 31536000);
-            if (interval > 1) return interval + " years ago";
-            interval = Math.floor(seconds / 2592000);
-            if (interval > 1) return interval + " months ago";
-            interval = Math.floor(seconds / 86400);
-            if (interval > 1) return interval + " days ago";
-            interval = Math.floor(seconds / 3600);
-            if (interval > 1) return interval + " hours ago";
+            const date = new Date(dateString); const seconds = Math.floor((new Date() - date) / 1000);
+            let interval = Math.floor(seconds / 31536000); if (interval > 1) return interval + " yrs ago";
+            interval = Math.floor(seconds / 2592000); if (interval > 1) return interval + " mos ago";
+            interval = Math.floor(seconds / 86400); if (interval > 1) return interval + " days ago";
             return "Just now";
         }
 
-        // Extract first letter for channel avatar
-        function getChannelInitial(channelName) {
-            return channelName ? channelName.charAt(0).toUpperCase() : '🛰️';
+        // Display Loading Skeletons
+        function showSkeletons(count = 12) {
+            videoContainer.innerHTML = '';
+            for(let i=0; i<count; i++) {
+                videoContainer.innerHTML += `
+                    <div class="video-card">
+                        <div class="thumbnail-wrapper skeleton"></div>
+                        <div class="video-details">
+                            <div class="channel-avatar skeleton" style="background:none;"></div>
+                            <div class="video-text">
+                                <div class="skeleton" style="height: 16px; width: 90%; margin-bottom: 8px;"></div>
+                                <div class="skeleton" style="height: 12px; width: 60%;"></div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
         }
 
-        // --- FETCHING & RENDERING VIDEOS ---
         async function fetchVideos(query) {
-            videoContainer.innerHTML = `
-                <div class="status-message">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2" class="spin"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
-                    <p style="margin-top: 15px;">Scanning deep space sectors...</p>
-                </div>
-            `;
-            // Quick inline CSS for the loading spinner
-            if(!document.getElementById('spinStyle')) {
-                document.head.insertAdjacentHTML('beforeend', '<style id="spinStyle">.spin { animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }</style>');
-            }
-
+            showSkeletons();
             const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=16&q=${encodeURIComponent(query)}&type=video&key=${API_KEY}`;
-            
             try {
                 const response = await fetch(url);
                 const data = await response.json();
-                
                 if (data.error) throw new Error(data.error.message);
-                displayVideos(data.items);
+                
+                // Process and format data
+                currentVideos = data.items.map(item => {
+                    const mock = getMockData(item.id.videoId);
+                    return {
+                        id: item.id.videoId,
+                        title: item.snippet.title,
+                        channel: item.snippet.channelTitle,
+                        thumb: item.snippet.thumbnails.high.url,
+                        published: timeAgo(item.snippet.publishedAt),
+                        desc: item.snippet.description,
+                        ...mock
+                    };
+                });
+                renderGrid(currentVideos);
             } catch (error) {
-                console.error("Transmission error:", error);
-                videoContainer.innerHTML = `<div class="status-message" style="color: #ff4444;">Error decoding transmission: ${error.message}</div>`;
+                videoContainer.innerHTML = `<div class="status-message" style="color: #ff4444;">Error: ${error.message}</div>`;
             }
         }
 
-        function displayVideos(videos) {
+        function renderGrid(videos) {
             videoContainer.innerHTML = '';
-            
-            if (!videos || videos.length === 0) {
-                videoContainer.innerHTML = '<div class="status-message">No transmissions found in this sector. Try another frequency.</div>';
-                return;
+            if (videos.length === 0) {
+                videoContainer.innerHTML = '<div class="status-message">No transmissions found.</div>'; return;
             }
-
-            videos.forEach(video => {
-                const videoId = video.id.videoId;
-                const snippet = video.snippet;
-                
+            videos.forEach(v => {
+                const isSaved = savedLibrary.some(item => item.id === v.id);
                 const card = document.createElement('div');
                 card.className = 'video-card';
-                
                 card.innerHTML = `
-                    <div class="thumbnail-wrapper">
-                        <img class="thumbnail-img" src="${snippet.thumbnails.high.url}" alt="${snippet.title}">
-                        <div class="play-overlay">
-                            <div class="play-btn">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                            </div>
-                        </div>
+                    <div class="thumbnail-wrapper" onclick="openModal('${v.id}')">
+                        <img class="thumbnail-img" src="${v.thumb}" alt="thumb">
+                        <div class="duration-badge">${v.duration}</div>
+                        <div class="play-overlay"><div class="play-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div></div>
                     </div>
-                    <div class="video-details">
-                        <div class="channel-avatar">${getChannelInitial(snippet.channelTitle)}</div>
+                    <button class="save-btn ${isSaved ? 'saved' : ''}" title="Save to Library" onclick="toggleSave(event, '${v.id}')">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                    </button>
+                    <div class="video-details" onclick="openModal('${v.id}')">
+                        <div class="channel-avatar">${v.channel.charAt(0).toUpperCase()}</div>
                         <div class="video-text">
-                            <h3 class="video-title" title="${snippet.title}">${snippet.title}</h3>
-                            <p class="video-meta">${snippet.channelTitle}</p>
-                            <p class="video-meta">${timeAgo(snippet.publishedAt)}</p>
+                            <h3 class="video-title" title="${v.title}">${v.title}</h3>
+                            <p class="video-meta">${v.channel}</p>
+                            <p class="video-meta">${v.viewsText} views • ${v.published}</p>
                         </div>
-                    </div>
-                `;
-
-                card.addEventListener('click', () => openModal(videoId, snippet.title));
+                    </div>`;
                 videoContainer.appendChild(card);
             });
         }
 
-        // --- MODAL LOGIC ---
-        function openModal(videoId, title) {
-            modalIframeContainer.innerHTML = `
-                <iframe 
-                    src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
-                    title="${title}" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen>
-                </iframe>
-            `;
-            videoModal.classList.add('show');
-        }
-
-        function closeVideoModal() {
-            videoModal.classList.remove('show');
-            modalIframeContainer.innerHTML = ''; 
-        }
-
-        closeModal.addEventListener('click', closeVideoModal);
-        videoModal.addEventListener('click', (e) => {
-            if (e.target === videoModal) closeVideoModal();
-        });
-
-        // --- SEARCH EVENT LISTENERS ---
-        function triggerSearch() {
-            const val = searchInput.value.trim();
-            if (val) {
-                // When manually searching, un-highlight category chips
-                activeCategoryIndex = -1; 
-                renderCategories();
-                fetchVideos(val);
+        // --- LIBRARY LOGIC ---
+        function toggleSave(e, videoId) {
+            e.stopPropagation();
+            const btn = e.currentTarget;
+            const videoData = currentVideos.find(v => v.id === videoId) || savedLibrary.find(v => v.id === videoId);
+            
+            const index = savedLibrary.findIndex(item => item.id === videoId);
+            if (index > -1) {
+                savedLibrary.splice(index, 1);
+                btn.classList.remove('saved');
+                btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>`;
+            } else {
+                savedLibrary.push(videoData);
+                btn.classList.add('saved');
+                btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>`;
+            }
+            localStorage.setItem('nexus_library', JSON.stringify(savedLibrary));
+            
+            // If we are currently in the library view, re-render
+            if (document.getElementById('navLibrary').classList.contains('active')) {
+                showLibrary();
             }
         }
 
-        searchBtn.addEventListener('click', triggerSearch);
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') triggerSearch();
+        function showLibrary() {
+            updateNav('navLibrary');
+            document.getElementById('sectionTitle').style.display = 'block';
+            categoriesBar.style.display = 'none';
+            currentVideos = [...savedLibrary]; // Update context so modal works correctly
+            renderGrid(savedLibrary);
+        }
+
+        function goHome() {
+            updateNav('navHome');
+            document.getElementById('sectionTitle').style.display = 'none';
+            categoriesBar.style.display = 'flex';
+            fetchVideos(categories[activeCategoryIndex].query);
+        }
+
+        function updateNav(id) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // --- FULL MODAL LOGIC ---
+        function openModal(videoId) {
+            const v = currentVideos.find(vid => vid.id === videoId) || savedLibrary.find(vid => vid.id === videoId);
+            if(!v) return;
+
+            // Render Video
+            document.getElementById('modalIframeContainer').innerHTML = `
+                <iframe src="https://www.youtube.com/embed/${v.id}?autoplay=1" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+            `;
+
+            // Render Details
+            document.getElementById('modalDetailsContainer').innerHTML = `
+                <h2 class="watch-title">${v.title}</h2>
+                <div class="watch-primary-data">
+                    <div class="watch-channel">
+                        <div class="channel-avatar" style="width:40px;height:40px;">${v.channel.charAt(0).toUpperCase()}</div>
+                        <div class="watch-channel-info">
+                            <h4>${v.channel} <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--text-muted)"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.4-1.4 3.6 3.6 7.6-7.6L19 8l-9 9z"></path></svg></h4>
+                            <p>${v.subsText} subscribers</p>
+                        </div>
+                        <button class="sub-btn" onclick="this.classList.toggle('subscribed'); this.innerText = this.classList.contains('subscribed') ? 'Subscribed' : 'Subscribe'">Subscribe</button>
+                    </div>
+                    <div class="watch-actions">
+                        <div class="action-group">
+                            <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg> ${(v.viewsRaw / 34).toFixed(0)}</button>
+                            <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform: scaleY(-1);"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg></button>
+                        </div>
+                        <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg> Share</button>
+                        <button class="action-btn" onclick="toggleSave(event, '${v.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg> Save</button>
+                    </div>
+                </div>
+                <div class="watch-description">
+                    <div class="watch-stats">${v.viewsRaw.toLocaleString()} views • Premiered ${v.published}</div>
+                    ${v.desc ? v.desc.substring(0, 250) + '...' : 'No data logs provided for this transmission.'}
+                </div>
+                
+                <div class="comments-section">
+                    <h3>24 Comments</h3>
+                    <div class="mock-comment">
+                        <div class="mock-comment-avatar">A</div>
+                        <div class="mock-comment-content"><h5>AstroNerd99 • 2 days ago</h5><p>The resolution on these deep space captures is absolutely unreal. Incredible work!</p></div>
+                    </div>
+                    <div class="mock-comment">
+                        <div class="mock-comment-avatar">S</div>
+                        <div class="mock-comment-content"><h5>StarGazer • 1 week ago</h5><p>Does anyone know what frequency they used to intercept this feed? Amazing stuff.</p></div>
+                    </div>
+                </div>
+            `;
+
+            // Render Sidebar (Filter out current video)
+            const sidebarHtml = currentVideos.filter(vid => vid.id !== v.id).slice(0, 10).map(vid => `
+                <div class="related-card" onclick="openModal('${vid.id}')">
+                    <div class="thumbnail-wrapper">
+                        <img class="thumbnail-img" src="${vid.thumb}" alt="thumb">
+                        <div class="duration-badge">${vid.duration}</div>
+                    </div>
+                    <div class="video-text">
+                        <h4 class="video-title">${vid.title}</h4>
+                        <p class="video-meta">${vid.channel}</p>
+                        <p class="video-meta">${vid.viewsText} views • ${vid.published}</p>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('modalSidebarContainer').innerHTML = `<h3 style="margin-top:0;">Up Next</h3>${sidebarHtml}`;
+
+            document.getElementById('videoModal').classList.add('show');
+        }
+
+        function closeVideoModal() {
+            document.getElementById('videoModal').classList.remove('show');
+            document.getElementById('modalIframeContainer').innerHTML = ''; 
+        }
+
+        document.getElementById('closeModal').addEventListener('click', closeVideoModal);
+        document.getElementById('videoModal').addEventListener('click', (e) => {
+            if (e.target.id === 'videoModal') closeVideoModal();
         });
 
-        // Start by loading the default category
+        // Search Handlers
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            const val = document.getElementById('searchInput').value.trim();
+            if (val) { activeCategoryIndex = -1; renderCategories(); fetchVideos(val); }
+        });
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const val = document.getElementById('searchInput').value.trim();
+                if (val) { activeCategoryIndex = -1; renderCategories(); fetchVideos(val); }
+            }
+        });
+
+        // Initial Load
         fetchVideos(categories[0].query);
     </script>
-
 </body>
 </html>
