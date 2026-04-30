@@ -3,1748 +3,680 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P2P Web Radio Ultimate</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <!-- LiveKit SFU Client & JWT Generator (Replaces PeerJS) -->
-    <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.8.6/jsrsasign-all-min.js"></script>
-    <!-- Add YouTube IFrame API -->
-    <script src="https://www.youtube.com/iframe_api"></script>
+    <title>Galactic Nexus | Video Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { 
-            background: linear-gradient(-45deg, #020617, #0f172a, #064e3b, #020617);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            color: #f8fafc; 
-            overflow-x: hidden;
-        }
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .pulse-ring { animation: pulse 2s infinite; }
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-        
-        /* Custom Sliders */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px; width: 16px;
-            border-radius: 50%;
-            background: currentColor;
-            cursor: pointer;
-            margin-top: -6px;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px;
-            cursor: pointer;
-            background: #334155;
-            border-radius: 2px;
-        }
-        .eq-slider::-webkit-slider-thumb { background: #cbd5e1; height: 12px; width: 12px; margin-top: -4px;}
-        
-        canvas { width: 100%; height: 60px; border-radius: 0.5rem; background: #000; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
-
-        /* Floating Emojis & Confetti */
-        .floating-emoji {
-            position: fixed;
-            bottom: -50px;
-            font-size: 2rem;
-            pointer-events: none;
-            animation: floatUp 4s ease-in forwards;
-            z-index: 50;
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
-        }
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; transform: translateY(-10vh) scale(1.2) rotate(-10deg); }
-            50% { transform: translateY(-50vh) scale(1) rotate(10deg); }
-            100% { transform: translateY(-100vh) scale(0.8) rotate(-20deg); opacity: 0; }
-        }
-        
-        .confetti-piece {
-            position: fixed;
-            pointer-events: none;
-            z-index: 100;
+        /* --- CSS VARIABLES & THEME --- */
+        :root {
+            --bg-base: #030308;
+            --bg-surface: rgba(20, 20, 35, 0.6);
+            --bg-surface-hover: rgba(30, 30, 50, 0.8);
+            --accent-cyan: #00e5ff;
+            --accent-cyan-glow: rgba(0, 229, 255, 0.4);
+            --accent-purple: #9d00ff;
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --sidebar-width: 240px;
         }
 
-        .vinyl-spin { animation: spin 4s linear infinite; }
-        .vinyl-paused { animation-play-state: paused; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(27, 0, 58, 0.5), transparent 25%), 
+                radial-gradient(circle at 85% 30%, rgba(0, 17, 51, 0.5), transparent 25%);
+            color: var(--text-main);
+            font-family: 'Space Grotesk', sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
 
-        .marquee-container { overflow: hidden; white-space: nowrap; position: relative; }
-        .marquee-text { display: inline-block; padding-left: 100%; animation: marquee 10s linear infinite; }
-        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+        body::before {
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: transparent url('https://www.transparenttextures.com/patterns/stardust.png') repeat;
+            opacity: 0.2; z-index: -1; pointer-events: none;
+            animation: drift 100s linear infinite;
+        }
+        @keyframes drift { from { background-position: 0 0; } to { background-position: -1000px 500px; } }
 
-        .chat-msg { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .recording-pulse { animation: recPulse 1.5s infinite; }
-        @keyframes recPulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        /* --- LAYOUT --- */
+        .sidebar {
+            width: var(--sidebar-width); background: rgba(5, 5, 15, 0.8);
+            backdrop-filter: blur(20px); border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column; padding: 20px 0; z-index: 100;
+        }
+        .main-wrapper { flex-grow: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .content-area { flex-grow: 1; overflow-y: auto; padding: 20px 40px; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
+
+        /* --- SIDEBAR --- */
+        .brand { padding: 0 24px 30px; display: flex; align-items: center; gap: 12px; }
+        .brand h1 { margin: 0; color: var(--text-main); font-size: 24px; letter-spacing: 4px; text-transform: uppercase; cursor: pointer;}
+        .brand span { color: var(--accent-cyan); text-shadow: 0 0 10px var(--accent-cyan-glow); margin-right: 4px; }
         
-        /* FX Toggles */
-        .fx-radio:checked + div { background: #10b981; border-color: #059669; color: white; }
+        .nav-links { display: flex; flex-direction: column; gap: 5px; padding: 0 12px; }
+        .nav-item {
+            display: flex; align-items: center; gap: 15px; padding: 12px 16px;
+            color: var(--text-muted); text-decoration: none; border-radius: 10px;
+            transition: all 0.2s; font-weight: 600; cursor: pointer;
+        }
+        .nav-item:hover, .nav-item.active { background: rgba(255, 255, 255, 0.05); color: var(--text-main); }
+        .nav-item.active { background: rgba(0, 229, 255, 0.1); color: var(--accent-cyan); border-left: 3px solid var(--accent-cyan); }
+        .nav-item svg { width: 20px; height: 20px; }
+
+        /* --- HEADER --- */
+        .top-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 20px 40px;
+            background: rgba(3, 3, 8, 0.7); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color); z-index: 90;
+        }
+        .search-container { display: flex; width: 100%; max-width: 600px; position: relative; }
+        .search-container input {
+            width: 100%; padding: 12px 20px 12px 45px; background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color); border-radius: 30px; color: var(--text-main);
+            font-family: inherit; font-size: 16px; transition: all 0.3s;
+        }
+        .search-container input:focus { outline: none; border-color: var(--accent-cyan); background: rgba(0, 229, 255, 0.05); box-shadow: 0 0 15px var(--accent-cyan-glow); }
+        .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .search-btn {
+            position: absolute; right: 5px; top: 5px; bottom: 5px; padding: 0 20px;
+            border-radius: 25px; border: none; background: var(--accent-cyan); color: #000;
+            font-weight: 700; cursor: pointer; transition: all 0.2s;
+        }
+        .search-btn:hover { background: #fff; box-shadow: 0 0 15px var(--accent-cyan-glow); }
+
+        /* --- CATEGORIES --- */
+        .categories-bar { display: flex; gap: 12px; padding: 20px 0; overflow-x: auto; scrollbar-width: none; }
+        .categories-bar::-webkit-scrollbar { display: none; }
+        .chip {
+            padding: 8px 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color);
+            border-radius: 20px; color: var(--text-main); font-size: 14px; font-weight: 600;
+            cursor: pointer; white-space: nowrap; transition: all 0.3s;
+        }
+        .chip:hover { background: rgba(255, 255, 255, 0.1); }
+        .chip.active { background: var(--text-main); color: #000; border-color: var(--text-main); }
+
+        /* --- VIDEO GRID --- */
+        #videoContainer { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; padding-bottom: 50px; }
+        .video-card { display: flex; flex-direction: column; gap: 12px; cursor: pointer; position: relative; }
+        .thumbnail-wrapper {
+            position: relative; width: 100%; padding-bottom: 56.25%; border-radius: 12px;
+            overflow: hidden; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); transition: all 0.3s;
+        }
+        .video-card:hover .thumbnail-wrapper { border-color: var(--accent-purple); box-shadow: 0 5px 20px rgba(157, 0, 255, 0.3); transform: translateY(-4px); }
+        .thumbnail-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .video-card:hover .thumbnail-img { transform: scale(1.05); }
+        
+        .duration-badge {
+            position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8);
+            color: #fff; padding: 3px 6px; border-radius: 4px; font-size: 12px; font-weight: 600;
+        }
+        
+        .save-btn {
+            position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6);
+            color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; opacity: 0; transition: all 0.2s; backdrop-filter: blur(4px);
+        }
+        .save-btn:hover { background: var(--accent-cyan); color: #000; }
+        .save-btn.saved { opacity: 1; background: var(--accent-purple); color: #fff; border: 1px solid #fff; }
+        .video-card:hover .save-btn { opacity: 1; }
+
+        .play-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.3); display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s; pointer-events: none;
+        }
+        .video-card:hover .play-overlay { opacity: 1; }
+        .play-btn {
+            width: 50px; height: 50px; background: rgba(0, 0, 0, 0.8); border: 2px solid var(--accent-cyan);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 15px var(--accent-cyan-glow); color: var(--accent-cyan); padding-left: 4px;
+        }
+
+        .video-details { display: flex; gap: 12px; align-items: flex-start; }
+        .channel-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; color: #fff; font-size: 14px; flex-shrink: 0;
+        }
+        .video-text { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+        .video-title { font-size: 16px; font-weight: 600; margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .video-meta { font-size: 13px; color: var(--text-muted); margin: 0; }
+
+        /* --- SHORTS STYLES --- */
+        .shorts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding-bottom: 50px; }
+        .short-card { display: flex; flex-direction: column; gap: 8px; cursor: pointer; position: relative; }
+        .short-thumbnail-wrapper { position: relative; width: 100%; padding-bottom: 177.77%; border-radius: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); transition: all 0.3s; }
+        .short-card:hover .short-thumbnail-wrapper { border-color: var(--accent-purple); box-shadow: 0 5px 20px rgba(157, 0, 255, 0.3); transform: translateY(-4px); }
+        .short-title { font-size: 15px; font-weight: 600; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin: 0; }
+        .short-meta { font-size: 13px; color: var(--text-muted); margin: 0; }
+
+        .shorts-modal-wrapper { position: relative; height: 90vh; width: calc(90vh * 9 / 16); max-width: 95%; display: flex; flex-direction: column; }
+        .shorts-iframe-container { width: 100%; height: 100%; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0, 229, 255, 0.15); background: #000; }
+        .shorts-iframe-container iframe { width: 100%; height: 100%; border: none; }
+
+        /* Skeletons */
+        .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; border-radius: 4px; }
+        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* --- FULL WATCH MODAL --- */
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 5, 0.98); backdrop-filter: blur(20px);
+            align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal.show { display: flex; opacity: 1; }
+        .modal-wrapper { position: relative; width: 95%; max-width: 1600px; height: 90vh; display: flex; gap: 24px; }
+        
+        .close-btn { position: absolute; top: -35px; right: 0; color: var(--text-muted); font-size: 35px; cursor: pointer; transition: all 0.2s; z-index: 10; }
+        .close-btn:hover { color: var(--accent-cyan); text-shadow: 0 0 10px var(--accent-cyan-glow); transform: scale(1.1); }
+
+        /* Watch Layout: Left (Player + Info) */
+        .watch-main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding-right: 10px; }
+        .watch-main::-webkit-scrollbar { width: 6px; }
+        .watch-main::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        
+        .iframe-container { width: 100%; padding-bottom: 56.25%; position: relative; background: #000; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0, 229, 255, 0.1); flex-shrink: 0; }
+        .iframe-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+        .watch-info { padding: 20px 0; }
+        .watch-title { font-size: 22px; font-weight: 700; margin: 0 0 10px 0; }
+        .watch-primary-data { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px; }
+        
+        .watch-channel { display: flex; align-items: center; gap: 12px; }
+        .watch-channel-info h4 { margin: 0; font-size: 16px; }
+        .watch-channel-info p { margin: 2px 0 0; font-size: 13px; color: var(--text-muted); }
+        .sub-btn { background: #fff; color: #000; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 700; cursor: pointer; transition: 0.2s; margin-left: 15px; }
+        .sub-btn:hover { background: var(--accent-cyan); }
+        .sub-btn.subscribed { background: rgba(255,255,255,0.1); color: #fff; }
+
+        .watch-actions { display: flex; gap: 10px; }
+        .action-btn { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); border: none; padding: 8px 16px; border-radius: 20px; color: #fff; cursor: pointer; font-family: inherit; font-weight: 600; transition: 0.2s; }
+        .action-btn:hover { background: rgba(255,255,255,0.2); }
+        .action-btn svg { width: 18px; height: 18px; }
+        .action-group { display: flex; background: rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden; }
+        .action-group .action-btn { background: transparent; border-radius: 0; }
+        .action-group .action-btn:first-child { border-right: 1px solid rgba(255,255,255,0.1); }
+        .action-group .action-btn:hover { background: rgba(255,255,255,0.1); }
+
+        .watch-description { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; font-size: 14px; line-height: 1.5; color: #e0e0e0; }
+        .watch-stats { font-weight: 600; margin-bottom: 8px; color: #fff; }
+        
+        .comments-section { margin-top: 24px; }
+        .comments-section h3 { margin-bottom: 15px; }
+        .mock-comment { display: flex; gap: 15px; margin-bottom: 20px; }
+        .mock-comment-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-surface-hover); display: flex; align-items: center; justify-content: center; }
+        .mock-comment-content h5 { margin: 0 0 5px; font-size: 14px; color: var(--text-muted); }
+        .mock-comment-content p { margin: 0; font-size: 14px; }
+
+        /* Watch Layout: Right (Related) */
+        .watch-sidebar { width: 400px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-right: 10px; }
+        .watch-sidebar::-webkit-scrollbar { width: 6px; }
+        .watch-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        
+        .related-card { display: flex; gap: 10px; cursor: pointer; }
+        .related-card .thumbnail-wrapper { width: 160px; padding-bottom: 90px; border-radius: 8px; flex-shrink: 0; }
+        .related-card .video-title { font-size: 14px; -webkit-line-clamp: 2; margin-bottom: 4px; }
+        .related-card .video-meta { font-size: 12px; }
+
+        @media (max-width: 1024px) {
+            .modal-wrapper { flex-direction: column; overflow-y: auto; height: 95vh; padding-top: 30px;}
+            .shorts-modal-wrapper { height: 85vh; width: calc(85vh * 9 / 16); }
+            .watch-main, .watch-sidebar { overflow-y: visible; width: 100%; }
+            .sidebar { display: none; }
+        }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 antialiased">
+<body>
 
-    <!-- VIEW: SETUP & DASHBOARD -->
-    <div id="setup-view" class="w-full max-w-md bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-3xl shadow-2xl p-6 transition-all duration-300 relative overflow-hidden">
-        <div class="absolute -top-20 -right-20 w-40 h-40 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-        <div class="absolute -bottom-20 -left-20 w-40 h-40 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-        
-        <div class="text-center mb-8 relative z-10">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-800 border border-slate-600 mb-4 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>
-            </div>
-            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">P2P Radio Ultimate</h1>
-            <p class="text-slate-400 text-sm mt-1">Serverless Zero-Latency Broadcasting</p>
+    <aside class="sidebar">
+        <div class="brand" onclick="goHome()">
+            <h1>N Ξ X U S</h1>
         </div>
+        <nav class="nav-links">
+            <a class="nav-item active" id="navHome" onclick="goHome()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                Home
+            </a>
+            <a class="nav-item" id="navShorts" onclick="showShorts()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15l5-3-5-3v6z"/><rect x="2" y="3" width="20" height="18" rx="2" ry="2"/></svg>
+                Shorts
+            </a>
+            <a class="nav-item" id="navLibrary" onclick="showLibrary()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                Library
+            </a>
+            <a class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                Explore
+            </a>
+        </nav>
+    </aside>
 
-        <div class="space-y-6 relative z-10">
-            <div class="space-y-3">
-                <input type="text" id="station-name-input" placeholder="Station Name (e.g. Synthwave Mix)" class="w-full bg-slate-950/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-medium placeholder-slate-600 transition">
-                <div class="flex gap-2">
-                    <input type="text" id="dj-username-input" placeholder="Your DJ Name" class="flex-1 bg-slate-950/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-medium placeholder-slate-600 transition">
-                    <div class="relative group" title="Station Theme Color">
-                        <input type="color" id="station-color-input" value="#10b981" class="h-full w-14 bg-slate-950/50 border border-slate-700 rounded-xl cursor-pointer p-1">
-                    </div>
-                </div>
-                
-                <div class="p-4 rounded-xl border border-emerald-500/30 hover:border-emerald-400 bg-emerald-900/20 hover:bg-emerald-800/30 transition cursor-pointer group flex items-center gap-4" onclick="startBroadcaster()">
-                    <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center group-hover:bg-emerald-500/40 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-400 group-hover:text-emerald-300" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-lg text-emerald-50 transition">Start Broadcasting</h3>
-                        <p class="text-emerald-200/60 text-xs">Mix mic, music, effects, and chat.</p>
-                    </div>
-                </div>
-
-                <div class="p-4 bg-slate-900 border border-slate-700 rounded-xl shadow-inner">
-                    <h4 class="text-xs font-bold text-cyan-400 mb-1 uppercase tracking-wider flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" /></svg>
-                        SFU Server (LiveKit)
-                    </h4>
-                    <p class="text-[10px] text-slate-400 mb-3 leading-tight">Option 3: Unlimited Listeners. Get your free API credentials at <a href="https://cloud.livekit.io" target="_blank" class="text-emerald-400 underline hover:text-emerald-300">livekit.io</a>.</p>
-                    <div class="space-y-2">
-                        <input type="text" id="lk-url" placeholder="wss://your-project.livekit.cloud" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:border-cyan-500 outline-none transition">
-                        <input type="text" id="lk-key" placeholder="API Key (e.g. devkey)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:border-cyan-500 outline-none transition">
-                        <input type="password" id="lk-secret" placeholder="API Secret" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:border-cyan-500 outline-none transition">
-                    </div>
-                    <p class="text-[9px] text-red-400/80 mt-2 font-bold uppercase tracking-wider">Demo Mode: Secrets shared publicly to enable auto-join.</p>
-                </div>
+    <div class="main-wrapper">
+        <header class="top-header">
+            <div class="search-container">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="searchInput" placeholder="Search the cosmos...">
+                <button class="search-btn" id="searchBtn">Engage</button>
             </div>
-
-            <div class="relative flex py-2 items-center">
-                <div class="flex-grow border-t border-slate-700"></div>
-                <span class="flex-shrink-0 mx-4 text-cyan-500/50 text-xs font-bold tracking-widest uppercase">Live Stations</span>
-                <div class="flex-grow border-t border-slate-700"></div>
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--border-color); border: 2px solid var(--accent-purple); cursor: pointer; overflow: hidden;">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=NexusUser&backgroundColor=transparent" alt="User" style="width:100%; height:100%;">
             </div>
+        </header>
 
-            <div id="stations-list" class="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                <div class="flex justify-center items-center py-6">
-                    <div class="w-5 h-5 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-                    <span class="ml-3 text-slate-400 text-sm" id="dashboard-status">Scanning frequency...</span>
-                </div>
-            </div>
-
-            <details class="group mt-2">
-                <summary class="text-xs text-slate-500 hover:text-slate-300 cursor-pointer text-center list-none outline-none transition">Have a private code? Join manually.</summary>
-                <div class="mt-3 flex gap-2">
-                    <input type="text" id="join-id-input" placeholder="STATION-ID" class="w-full bg-slate-950/50 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500 uppercase font-mono transition">
-                    <button onclick="startListenerManual()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg text-sm transition shadow-[0_0_15px_rgba(8,145,178,0.4)]">Join</button>
-                </div>
-            </details>
+        <div class="content-area">
+            <div class="categories-bar" id="categoriesBar"></div>
+            <h2 id="sectionTitle" style="display:none; margin-top:0;">Your Library (Watch Later)</h2>
+            <main id="videoContainer"></main>
+            <main id="shortsContainer" class="shorts-grid" style="display:none;"></main>
         </div>
     </div>
 
-    <!-- VIEW: BROADCASTER (DJ) -->
-    <div id="dj-view" class="hidden w-full max-w-6xl bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 md:p-8 flex flex-col h-[95vh]">
-        <!-- Header -->
-        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 shrink-0">
-            <div class="flex items-center gap-4 bg-slate-950/50 pr-6 pl-2 py-2 rounded-full border border-slate-800">
-                <div class="bg-slate-800 rounded-full p-2 cursor-pointer hover:bg-slate-700 transition" onclick="copyStationId()" title="Copy ID">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                </div>
-                <div>
-                    <h2 id="dj-station-name" class="text-xl font-bold text-white leading-tight">My Station</h2>
-                    <div class="flex items-center gap-2">
-                        <span class="flex h-2 w-2 relative">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                        </span>
-                        <span id="station-id-display" class="font-mono text-xs font-bold text-slate-400 tracking-widest">GENERATING...</span>
-                    </div>
-                </div>
-            </div>
+    <!-- Full Watch Page Modal -->
+    <div id="videoModal" class="modal">
+        <div class="modal-wrapper">
+            <span class="close-btn" id="closeModal">&times;</span>
             
-            <div class="flex gap-4 items-center flex-wrap justify-center">
-                <!-- Hype Counter -->
-                <div class="bg-pink-950/40 px-4 py-1.5 rounded-full border border-pink-900/50 flex items-center gap-2">
-                    <span class="text-pink-400 text-sm animate-pulse">💖</span>
-                    <span id="dj-hype-count" class="font-mono font-bold text-pink-300 text-sm">0</span>
-                </div>
-                <button id="record-btn" onclick="toggleRecording()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 px-4 py-2 rounded-full transition font-bold flex items-center gap-2">
-                    <span id="record-dot" class="h-2 w-2 rounded-full bg-slate-500"></span>
-                    <span id="record-text">RECORD</span>
-                </button>
-                <button onclick="endBroadcast()" class="text-xs bg-red-900/30 hover:bg-red-900/50 border border-red-500/30 text-red-400 px-4 py-2 rounded-full transition font-bold">END STREAM</button>
-                <div class="bg-cyan-950/40 px-5 py-2 rounded-full border border-cyan-900/50 flex items-center gap-3">
-                    <span class="text-cyan-400 text-xs font-bold uppercase tracking-wider">Listeners</span>
-                    <div class="bg-cyan-500/20 px-3 py-1 rounded-full">
-                        <span id="listener-count" class="font-mono font-bold text-cyan-300 text-lg">0</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1 min-h-0">
-            
-            <!-- Music Deck & Chat (Col 1 & 2) -->
-            <div class="lg:col-span-2 flex flex-col gap-4 min-h-0 overflow-y-auto custom-scrollbar pr-1">
-                <!-- Music Deck -->
-                <div class="bg-slate-950/50 border border-slate-800 rounded-2xl p-5 flex flex-col relative overflow-hidden shrink-0">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                        <svg class="w-32 h-32 vinyl-spin vinyl-paused" id="vinyl-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="50" cy="50" r="48" stroke="currentColor" stroke-width="4"/>
-                            <circle cx="50" cy="50" r="35" stroke="currentColor" stroke-width="1"/>
-                            <circle cx="50" cy="50" r="25" stroke="currentColor" stroke-width="1"/>
-                            <circle cx="50" cy="50" r="15" fill="currentColor"/>
-                        </svg>
-                    </div>
-
-                    <div class="flex justify-between items-center mb-4 relative z-10">
-                        <h3 class="text-emerald-400 font-bold text-sm tracking-wider flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" /></svg>
-                            MUSIC DECK
-                        </h3>
-                        <div class="flex gap-2">
-                            <label class="bg-slate-800 hover:bg-slate-700 text-white text-[10px] sm:text-xs font-bold py-1.5 px-2 sm:px-3 rounded-lg cursor-pointer transition shadow-sm border border-slate-600">
-                                + Files <input type="file" id="music-files" accept="audio/*" multiple class="hidden" onchange="handleMusicUpload(event)">
-                            </label>
-                            <label class="bg-slate-800 hover:bg-slate-700 text-white text-[10px] sm:text-xs font-bold py-1.5 px-2 sm:px-3 rounded-lg cursor-pointer transition shadow-sm border border-slate-600">
-                                + Folder <input type="file" id="music-folder" webkitdirectory multiple class="hidden" onchange="handleMusicUpload(event)">
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Moved Controls & Playlist UP for better visibility -->
-                    <div class="flex justify-between items-center mb-3 z-10">
-                        <div class="flex gap-2">
-                            <button onclick="toggleLoop()" id="btn-loop" class="text-xs px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-400 hover:text-white transition">🔁 Loop</button>
-                            <button onclick="shufflePlaylist()" id="btn-shuffle" class="text-xs px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-400 hover:text-white transition">🔀 Shuffle</button>
-                        </div>
-                        <div class="flex items-center gap-2 bg-slate-900 px-3 py-1 rounded border border-slate-800">
-                            <span class="text-[10px] text-slate-400 font-bold uppercase">Tempo</span>
-                            <input type="range" id="tempo-slider" class="w-20 text-emerald-500" min="0.5" max="1.5" step="0.05" value="1" oninput="updateTempo()">
-                            <span id="tempo-label" class="text-[10px] text-slate-300 w-6 text-right">1.0x</span>
-                        </div>
-                    </div>
-
-                    <div id="playlist-container" class="hidden flex-col h-[120px] bg-slate-900/80 rounded-xl border border-slate-800 p-2 mb-4 z-10 shrink-0 shadow-inner">
-                        <div id="playlist-list" class="flex-1 overflow-y-auto custom-scrollbar text-sm space-y-1 pr-2"></div>
-                    </div>
-
-                    <!-- YouTube Search Integration -->
-                    <div class="flex gap-2 mb-3 z-10">
-                        <input type="text" id="yt-search-input" placeholder="Search YouTube (e.g. Lofi Girl)..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-red-500 transition" onkeypress="if(event.key === 'Enter') searchYouTube()">
-                        <button onclick="searchYouTube()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-1 shadow-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
-                            Search
-                        </button>
-                    </div>
-                    
-                    <div id="yt-results-container" class="hidden flex-col gap-1 mb-3 z-10 max-h-40 overflow-y-auto custom-scrollbar bg-slate-900 rounded-lg p-1 border border-slate-700 shadow-xl"></div>
-
-                    <!-- DJ YouTube Player Container -->
-                    <div id="yt-player-container-dj" class="hidden z-10 w-full mb-3 rounded-lg overflow-hidden border border-slate-800 bg-black h-[180px] shrink-0">
-                        <div id="yt-player-dj" class="w-full h-full"></div>
-                    </div>
-
-                    <audio id="dj-audio-player" controls class="w-full h-10 mt-auto z-10 outline-none rounded-lg" onplay="onDJPlay()" onpause="document.getElementById('vinyl-icon').classList.add('vinyl-paused')"></audio>
-                </div>
-
-                <!-- Live Chat -->
-                <div class="bg-slate-950/50 border border-slate-800 rounded-2xl flex flex-col flex-1 min-h-[250px] overflow-hidden">
-                    <div class="p-3 border-b border-slate-800 bg-slate-900/50 shrink-0">
-                        <h3 class="text-cyan-400 font-bold text-xs tracking-wider flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                            LIVE CHAT (HOST)
-                        </h3>
-                    </div>
-                    <div id="dj-chat-messages" class="flex-1 p-3 overflow-y-auto custom-scrollbar space-y-2 text-sm flex flex-col">
-                        <div class="text-slate-500 text-xs text-center italic mt-auto">Chat room open. Say hi!</div>
-                    </div>
-                    <div class="p-3 bg-slate-900/80 border-t border-slate-800 flex gap-2 shrink-0">
-                        <input type="text" id="dj-chat-input" placeholder="Type message..." class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500 transition" onkeypress="handleChatEnter(event, 'dj')">
-                        <button onclick="sendChatMessage('dj')" class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 rounded-lg text-sm font-bold transition">Send</button>
-                    </div>
-                </div>
+            <div class="watch-main">
+                <div class="iframe-container" id="modalIframeContainer"></div>
+                <div class="watch-info" id="modalDetailsContainer"></div>
             </div>
 
-            <!-- Mixer & FX (Col 3 & 4) -->
-            <div class="lg:col-span-2 flex flex-col gap-4 min-h-0 overflow-y-auto custom-scrollbar pr-1">
-                
-                <!-- Mixer Panel -->
-                <div class="bg-slate-950/50 border border-slate-800 rounded-2xl p-5 shrink-0">
-                    <h3 class="text-purple-400 font-bold text-sm tracking-wider flex items-center gap-2 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                        MASTER MIXER
-                    </h3>
-                    
-                    <div class="space-y-4">
-                        <!-- Volumes -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <div class="flex justify-between text-[10px] text-slate-400 mb-1 font-bold uppercase"><span>Music / YT Vol</span><span id="music-vol-label">100%</span></div>
-                                <input type="range" id="music-vol" class="text-emerald-500" min="0" max="1.5" step="0.05" value="1" oninput="updateMixer()">
-                            </div>
-                            <div>
-                                <div class="flex justify-between text-[10px] text-slate-400 mb-1 font-bold uppercase"><span>Mic Vol</span><span id="mic-vol-label">100%</span></div>
-                                <input type="range" id="mic-vol" class="text-purple-500" min="0" max="2" step="0.05" value="1" oninput="updateMixer()">
-                            </div>
-                        </div>
-
-                        <!-- 3-Band EQ & Voice FX -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
-                                <div class="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">Local Music EQ</div>
-                                <div class="flex justify-between px-1">
-                                    <div class="flex flex-col items-center">
-                                        <input type="range" id="eq-low" class="eq-slider text-slate-300 w-16" min="-15" max="15" step="1" value="0" oninput="updateMixer()">
-                                        <span class="text-[9px] text-slate-400 mt-1">LOW</span>
-                                    </div>
-                                    <div class="flex flex-col items-center">
-                                        <input type="range" id="eq-mid" class="eq-slider text-slate-300 w-16" min="-15" max="15" step="1" value="0" oninput="updateMixer()">
-                                        <span class="text-[9px] text-slate-400 mt-1">MID</span>
-                                    </div>
-                                    <div class="flex flex-col items-center">
-                                        <input type="range" id="eq-high" class="eq-slider text-slate-300 w-16" min="-15" max="15" step="1" value="0" oninput="updateMixer()">
-                                        <span class="text-[9px] text-slate-400 mt-1">HIGH</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 flex flex-col">
-                                <div class="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">Mic Filter</div>
-                                <div class="flex bg-slate-950 rounded-lg p-1 border border-slate-700 h-full">
-                                    <label class="flex-1 text-center cursor-pointer relative">
-                                        <input type="radio" name="mic-filter" value="clean" checked class="fx-radio hidden" onchange="updateMixer()">
-                                        <div class="text-[10px] font-bold py-1 rounded transition text-slate-400">CLEAN</div>
-                                    </label>
-                                    <label class="flex-1 text-center cursor-pointer relative">
-                                        <input type="radio" name="mic-filter" value="mega" class="fx-radio hidden" onchange="updateMixer()">
-                                        <div class="text-[10px] font-bold py-1 rounded transition text-slate-400">MEGA</div>
-                                    </label>
-                                    <label class="flex-1 text-center cursor-pointer relative">
-                                        <input type="radio" name="mic-filter" value="space" class="fx-radio hidden" onchange="updateMixer()">
-                                        <div class="text-[10px] font-bold py-1 rounded transition text-slate-400">SPACE</div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Echo Toggle -->
-                        <div class="flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-800">
-                            <span class="text-xs font-bold text-slate-300">MIC DELAY FX</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="mic-echo" class="sr-only peer" onchange="updateMixer()">
-                                <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-500"></div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Synth Soundboard -->
-                <div class="bg-slate-950/50 border border-slate-800 rounded-2xl p-4 shrink-0">
-                    <h3 class="text-pink-400 font-bold text-xs tracking-wider flex items-center gap-2 mb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" /><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" /></svg>
-                        LIVE SOUNDBOARD
-                    </h3>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="playSynthFX('airhorn')" class="bg-slate-800 hover:bg-slate-700 active:bg-pink-600 border border-slate-700 rounded-xl py-2 text-xs font-bold text-slate-300 hover:text-white transition shadow-sm flex flex-col items-center gap-1">
-                            <span class="text-lg">📯</span> Horn
-                        </button>
-                        <button onclick="playSynthFX('applause')" class="bg-slate-800 hover:bg-slate-700 active:bg-yellow-600 border border-slate-700 rounded-xl py-2 text-xs font-bold text-slate-300 hover:text-white transition shadow-sm flex flex-col items-center gap-1">
-                            <span class="text-lg">👏</span> Applause
-                        </button>
-                        <button onclick="playSynthFX('subdrop')" class="bg-slate-800 hover:bg-slate-700 active:bg-emerald-600 border border-slate-700 rounded-xl py-2 text-xs font-bold text-slate-300 hover:text-white transition shadow-sm flex flex-col items-center gap-1">
-                            <span class="text-lg">💣</span> Drop
-                        </button>
-                        
-                        <button onclick="playSynthFX('laser')" class="bg-slate-800 hover:bg-slate-700 active:bg-cyan-600 border border-slate-700 rounded-xl py-2 text-xs font-bold text-slate-300 hover:text-white transition shadow-sm flex flex-col items-center gap-1">
-                            <span class="text-lg">⚡</span> Laser
-                        </button>
-                        <button onclick="playSynthFX('magic')" class="bg-slate-800 hover:bg-slate-700 active:bg-purple-600 border border-slate-700 rounded-xl py-2 text-xs font-bold text-slate-300 hover:text-white transition shadow-sm flex flex-col items-center gap-1">
-                            <span class="text-lg">✨</span> Chime
-                        </button>
-                        <button onclick="triggerConfettiSync()" class="bg-slate-800 hover:bg-slate-700 active:bg-rose-600 border border-slate-700 rounded-xl py-2 text-xs font-bold text-slate-300 hover:text-white transition shadow-sm flex flex-col items-center gap-1">
-                            <span class="text-lg">🎉</span> Confetti
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Controls -->
-                <div class="flex gap-2 shrink-0">
-                    <button id="mute-mic-btn" onclick="toggleMute()" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl py-4 flex justify-center items-center transition shadow-lg">
-                        <svg id="mic-icon-on" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-                        <svg id="mic-icon-off" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clip-rule="evenodd" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" /></svg>
-                    </button>
-                    
-                    <button id="deafen-btn" onclick="toggleDeafen()" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl py-4 flex justify-center items-center transition relative group shadow-lg">
-                        <svg id="deafen-icon-off" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-                        <svg id="deafen-icon-on" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 011.414 0L10 14.586H8.414l-1.414-1.414-4.707 4.707A1 1 0 011 17v-4a1 1 0 011-1h1.586l4.707-4.707C8.923 6.663 10 7.109 10 8v5.586l1.414-1.414z" /></svg>
-                        <span class="absolute -top-10 bg-slate-900 text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md border border-slate-700">Monitor Mute</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Master Output Visualizer -->
-        <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 relative overflow-hidden mt-6 shrink-0 shadow-inner group">
-            <span class="absolute top-3 left-4 text-[10px] text-slate-500 uppercase tracking-widest font-bold z-10">Master Output</span>
-            <canvas id="dj-visualizer" class="w-full h-16 opacity-80 mt-4"></canvas>
-        </div>
-        
-    </div>
-
-    <!-- VIEW: LISTENER -->
-    <div id="listener-view" class="hidden w-full max-w-lg bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[90vh] md:h-auto md:max-h-[90vh] transition-colors duration-1000">
-        <!-- Thematic Background Glow (Set dynamically) -->
-        <div id="listener-glow-1" class="absolute -top-10 -right-10 w-48 h-48 bg-cyan-500 rounded-full mix-blend-multiply filter blur-[60px] opacity-30 transition-colors duration-1000"></div>
-        <div id="listener-glow-2" class="absolute -bottom-10 -left-10 w-48 h-48 bg-emerald-500 rounded-full mix-blend-multiply filter blur-[60px] opacity-20 transition-colors duration-1000"></div>
-
-        <!-- Top Info -->
-        <div class="p-8 pb-4 text-center relative shrink-0 z-10">
-            <!-- Global Hype -->
-            <div class="absolute top-4 right-4 bg-slate-900/60 border border-pink-500/30 px-3 py-1 rounded-full flex items-center gap-1.5 backdrop-blur shadow-lg">
-                <span class="text-xs animate-pulse">💖</span>
-                <span id="listener-hype-count" class="text-xs font-bold text-pink-300 font-mono">0</span>
-            </div>
-
-            <h2 id="listener-station-display" class="text-3xl font-extrabold text-white mb-1 tracking-tight drop-shadow-lg mt-2">Tuning in...</h2>
-            <p id="listener-status-text" class="text-slate-400 font-medium">Establishing secure peer connection...</p>
-            
-            <!-- Now Playing Marquee -->
-            <div id="now-playing-container" class="mt-4 bg-slate-950/50 border border-slate-800 rounded-full py-1.5 px-4 hidden flex items-center gap-2 max-w-[80%] mx-auto">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white shrink-0 animate-pulse" viewBox="0 0 20 20" fill="currentColor"><path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" /></svg>
-                <div class="marquee-container w-full text-xs text-white/80 font-medium">
-                    <span id="now-playing-text" class="marquee-text">Waiting for DJ...</span>
-                </div>
-            </div>
-            
-            <div class="relative w-32 h-32 mx-auto mt-6 mb-6 flex items-center justify-center">
-                <div id="listener-status-icon" class="absolute inset-0 rounded-full bg-slate-800 border-4 border-slate-700 flex items-center justify-center transition-all duration-500 shadow-inner z-10">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                </div>
-            </div>
-
-            <div id="buffer-bar" class="w-3/4 mx-auto bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                <div class="bg-cyan-500 h-1.5 rounded-full w-full animate-[pulse_1s_ease-in-out_infinite] origin-left scale-x-0 transition-transform duration-1000" style="transform: scaleX(1)"></div>
-            </div>
-
-            <div id="listener-visualizer-container" class="hidden w-full bg-slate-950/70 rounded-xl p-2 border border-slate-800 shadow-inner">
-                <canvas id="listener-visualizer" class="h-16"></canvas>
-            </div>
-        </div>
-
-        <!-- Chat Area (Listener) -->
-        <div id="listener-chat-container" class="hidden flex-1 flex flex-col min-h-[150px] border-t border-slate-800 bg-slate-900/50 z-10">
-            <div id="listener-chat-messages" class="flex-1 p-4 overflow-y-auto custom-scrollbar space-y-3 text-sm flex flex-col">
-                <div class="text-slate-500 text-xs text-center italic mt-auto">Connected to chat.</div>
-            </div>
-            <div class="p-3 bg-slate-950/80 border-t border-slate-800 flex gap-2 shrink-0">
-                <input type="text" id="listener-chat-input" placeholder="Chat with everyone..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500 transition" onkeypress="handleChatEnter(event, 'listener')">
-                <button id="listener-send-btn" onclick="sendChatMessage('listener')" class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 rounded-lg text-sm font-bold transition">Send</button>
-            </div>
-        </div>
-
-        <!-- Controls (Listener) -->
-        <div class="p-4 bg-slate-950/80 border-t border-slate-800 shrink-0 z-10">
-            <!-- Interactive Reactions -->
-            <div id="reactions-bar" class="hidden flex justify-center gap-4 mb-4">
-                <button onclick="sendReaction('🎉')" class="text-2xl hover:scale-125 transition transform hover:-translate-y-2 bg-slate-800 w-12 h-12 rounded-full border border-slate-700 shadow-lg">🎉</button>
-                <button onclick="sendReaction('💖')" class="text-2xl hover:scale-125 transition transform hover:-translate-y-2 bg-slate-800 w-12 h-12 rounded-full border border-slate-700 shadow-lg">💖</button>
-                <button onclick="sendReaction('🔥')" class="text-2xl hover:scale-125 transition transform hover:-translate-y-2 bg-slate-800 w-12 h-12 rounded-full border border-slate-700 shadow-lg">🔥</button>
-                <button onclick="sendReaction('🎵')" class="text-2xl hover:scale-125 transition transform hover:-translate-y-2 bg-slate-800 w-12 h-12 rounded-full border border-slate-700 shadow-lg">🎵</button>
-            </div>
-
-            <!-- Standard WebRTC Audio Player -->
-            <audio id="audio-player" class="hidden" autoplay></audio>
-            <!-- Hidden YouTube Player for Listeners -->
-            <div id="yt-player-listener" class="hidden"></div>
-            
-            <!-- Volume & Disconnect -->
-            <div class="flex items-center gap-3">
-                <button id="listener-deafen-btn" onclick="toggleListenerDeafen()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white p-3 rounded-xl transition shadow-md">
-                    <svg id="listener-vol-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-                </button>
-                <input type="range" id="listener-vol-slider" class="flex-1 text-slate-300" min="0" max="1" step="0.05" value="1" oninput="updateListenerVolume()">
-                <button onclick="location.reload()" class="bg-red-900/30 hover:bg-red-900/50 border border-red-500/30 text-red-400 font-bold py-3 px-6 rounded-xl transition shadow-md ml-2">
-                    LEAVE
-                </button>
+            <div class="watch-sidebar" id="modalSidebarContainer">
+                <h3 style="margin-top:0;">Up Next</h3>
+                <!-- Related videos go here -->
             </div>
         </div>
     </div>
 
-<script>
-    // --- GLOBAL STATE ---
-    let room = null; // Replaced 'peer' with LiveKit 'room'
-    let localStream = null;
-    let myMicStream = null;
-    let myUsername = "Anonymous";
-    let globalHypeCount = 0;
-    
-    // Audio Nodes
-    let audioCtx = null;
-    let micGainNode = null;
-    let musicGainNode = null;
-    let eqLow = null, eqMid = null, eqHigh = null; 
-    
-    // Mic FX Nodes
-    let micCleanGain = null;
-    let micMegaGain = null;
-    let micSpaceGain = null;
-    let megaFilter1 = null, megaFilter2 = null;
-    let spaceReverb = null;
+    <!-- Vertical Shorts Modal -->
+    <div id="shortsModal" class="modal">
+        <div class="shorts-modal-wrapper">
+            <span class="close-btn" id="closeShortsModal" style="right: -40px; top: -10px;">&times;</span>
+            <div class="shorts-iframe-container" id="shortsIframeContainer"></div>
+        </div>
+    </div>
 
-    let delayNode = null, feedbackNode = null;
-    let monitorGainNode = null; 
-    let masterCompressor = null; 
-    let destinationNode = null;
-
-    let isMicMuted = false;
-    let isDeafened = false; 
-    let listenerCount = 0;
-    
-    let isBroadcasting = false;
-    let myStationId = null;
-    let myStationName = "";
-    let myStationColor = "#10b981"; 
-    
-    // Playlist & Recording State
-    let playlist = [];
-    let currentTrackIndex = 0;
-    let isLooping = false;
-    
-    let mediaRecorder = null;
-    let recordedChunks = [];
-    let isRecording = false;
-
-    // --- YOUTUBE API STATE ---
-    const YT_API_KEY = "AIzaSyBFTCtKzfMfpaj3aFjFPLbaysw5atwy_LA";
-    let djYtPlayer = null;
-    let listenerYtPlayer = null;
-    let isYtApiReady = false;
-    let djYtEndTimeout = null; // Prevent ad-endings from skipping tracks
-
-    // YouTube API callback
-    function onYouTubeIframeAPIReady() {
-        isYtApiReady = true;
-    }
-
-    // --- DASHBOARD LOGIC (MQTT) ---
-    const MQTT_BROKER = 'wss://broker.emqx.io:8084/mqtt';
-    const MQTT_TOPIC_PREFIX = 'p2pradio-ultimate/v1/stations/';
-    let mqttClient = null;
-    let activeStations = {};
-
-    function initDashboard() {
-        const dashboardStatus = document.getElementById('dashboard-status');
-        mqttClient = mqtt.connect(MQTT_BROKER);
-
-        mqttClient.on('connect', () => {
-            dashboardStatus.innerText = 'Network sync complete.';
-            dashboardStatus.parentElement.querySelector('div').classList.replace('border-cyan-500', 'border-emerald-500');
-            dashboardStatus.parentElement.querySelector('div').classList.remove('animate-spin');
-            mqttClient.subscribe(MQTT_TOPIC_PREFIX + '#');
-            renderDashboard();
-        });
-
-        mqttClient.on('message', (topic, message) => {
-            const peerId = topic.replace(MQTT_TOPIC_PREFIX, '');
-            const payload = message.toString();
-
-            if (payload === '') delete activeStations[peerId];
-            else {
-                try {
-                    const data = JSON.parse(payload);
-                    if (Date.now() - data.timestamp < 2 * 60 * 60 * 1000) activeStations[peerId] = data;
-                    else delete activeStations[peerId];
-                } catch(e) {}
-            }
-            renderDashboard();
-        });
-    }
-
-    function renderDashboard() {
-        const list = document.getElementById('stations-list');
-        list.innerHTML = '';
-        const stationsArray = Object.values(activeStations);
-
-        if (stationsArray.length === 0) {
-            list.innerHTML = '<p class="text-slate-500 text-sm text-center py-4">Dead air. Start the first broadcast!</p>';
-            return;
-        }
-
-        stationsArray.sort((a, b) => b.listeners - a.listeners).forEach(data => {
-            if (isBroadcasting && data.peerId === myStationId) return;
-
-            const div = document.createElement('div');
-            const stationColor = data.color || '#06b6d4';
-            div.className = 'bg-slate-900/80 p-3 rounded-xl flex justify-between items-center border border-slate-700 hover:bg-slate-800 cursor-pointer transition group shadow-sm';
-            div.style.borderColor = `rgba(51, 65, 85, 0.5)`;
-            div.onmouseover = () => div.style.borderColor = stationColor;
-            div.onmouseout = () => div.style.borderColor = `rgba(51, 65, 85, 0.5)`;
-            
-            // Pass the LiveKit server credentials attached to the broadcast payload
-            div.onclick = () => startListener(data.peerId, data.name, stationColor, data.lkUrl, data.lkKey, data.lkSecret);
-            
-            div.innerHTML = `
-                <div class="overflow-hidden pr-2 flex items-center gap-3">
-                    <div class="w-3 h-3 rounded-full" style="background-color: ${stationColor}; box-shadow: 0 0 8px ${stationColor}"></div>
-                    <div>
-                        <h4 class="text-white font-bold truncate transition" style="color: ${stationColor}">${escapeHTML(data.name)}</h4>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="flex h-2 w-2 relative">
-                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                              <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                            </span>
-                            <p class="text-[10px] text-slate-400 uppercase tracking-wider">${data.listeners} Listening • Host: ${escapeHTML(data.host || 'DJ')}</p>
-                        </div>
-                    </div>
-                </div>
-                <button class="bg-slate-800 text-white hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap">
-                    TUNE IN
-                </button>
-            `;
-            list.appendChild(div);
-        });
-    }
-
-    function publishStationState() {
-        if (!isBroadcasting || !mqttClient || !myStationId) return;
+    <script>
+        const API_KEY = 'AIzaSyBFTCtKzfMfpaj3aFjFPLbaysw5atwy_LA'; 
+        const videoContainer = document.getElementById('videoContainer');
+        const shortsContainer = document.getElementById('shortsContainer');
+        const categoriesBar = document.getElementById('categoriesBar');
         
-        // Grab current credentials to share with listeners
-        const lkUrl = document.getElementById('lk-url').value.trim();
-        const lkKey = document.getElementById('lk-key').value.trim();
-        const lkSecret = document.getElementById('lk-secret').value.trim();
+        let currentVideos = []; // Store currently loaded videos for the modal sidebar
+        let currentShorts = []; // Store shorts data
+        let savedLibrary = JSON.parse(localStorage.getItem('nexus_library')) || [];
 
-        const payload = JSON.stringify({ 
-            name: myStationName, 
-            host: myUsername,
-            peerId: myStationId, 
-            color: myStationColor,
-            listeners: listenerCount, 
-            timestamp: Date.now(),
-            lkUrl: lkUrl,
-            lkKey: lkKey,
-            lkSecret: lkSecret
-        });
-        mqttClient.publish(MQTT_TOPIC_PREFIX + myStationId, payload, { retain: true });
-    }
-
-    function removeStationState() {
-        if (mqttClient && myStationId) mqttClient.publish(MQTT_TOPIC_PREFIX + myStationId, '', { retain: true });
-    }
-    window.addEventListener('beforeunload', removeStationState);
-    initDashboard();
-
-    // --- UI HELPERS ---
-    function switchView(viewId) {
-        ['setup-view', 'dj-view', 'listener-view'].forEach(id => document.getElementById(id).classList.add('hidden'));
-        document.getElementById(viewId).classList.remove('hidden');
-    }
-
-    async function copyStationId() {
-        const id = document.getElementById('station-id-display').innerText;
-        navigator.clipboard.writeText(id).catch(() => {});
-        const btn = document.querySelector('[title="Copy ID"]');
-        const oldHtml = btn.innerHTML;
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
-        setTimeout(() => btn.innerHTML = oldHtml, 1500);
-    }
-    function escapeHTML(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])); }
-
-    // --- LOCAL FILE PLAYLIST LOGIC ---
-    function handleMusicUpload(e) {
-        if (!e.target.files || e.target.files.length === 0) return;
-        const validAudioExtensions = /\.(mp3|wav|ogg|flac|aac|m4a)$/i;
-        const newFiles = Array.from(e.target.files).filter(f => (f.type && f.type.startsWith('audio/')) || f.name.match(validAudioExtensions));
-
-        if (newFiles.length > 0) {
-            const wasEmpty = playlist.length === 0;
-            playlist = playlist.concat(newFiles);
-            renderPlaylist();
-            if (wasEmpty) playTrack(0);
+        // Mock Generators (Deterministic based on videoId to keep consistent)
+        function getMockData(idStr) {
+            let num = 0; for(let i=0; i<idStr.length; i++) num += idStr.charCodeAt(i);
+            const views = (num * 142 % 5000) + 10;
+            const mins = (num % 25) + 3;
+            const secs = num % 60;
+            const subs = (num * 3 % 900) + 10;
+            return {
+                viewsText: views > 1000 ? (views/1000).toFixed(1) + 'M' : views + 'K',
+                viewsRaw: views * 1000,
+                duration: `${mins}:${secs < 10 ? '0'+secs : secs}`,
+                subsText: subs > 1000 ? (subs/1000).toFixed(1) + 'M' : subs + 'K'
+            };
         }
-        e.target.value = '';
-    }
 
-    function queueYouTubeVideo(videoId, title, playNow, event) {
-        if(event) event.stopPropagation();
-        const item = { type: 'youtube', id: videoId, name: title };
-        const wasEmpty = playlist.length === 0;
-        playlist.push(item);
-        renderPlaylist();
-        if (wasEmpty || playNow) {
-            playTrack(playlist.length - 1);
-        }
-    }
+        const categories = [
+            { name: "All", query: "space documentaries 4k" },
+            { name: "Recommended", query: "astrophysics OR universe secrets OR black holes documentary" },
+            { name: "Black Holes", query: "black holes documentary" },
+            { name: "James Webb", query: "james webb space telescope new images" },
+            { name: "Mars Missions", query: "mars rover spacex" },
+            { name: "Quantum", query: "quantum physics explained" }
+        ];
 
-    function playTrack(index) {
-        if (index < 0 || index >= playlist.length) return;
-        currentTrackIndex = index;
-        const item = playlist[index];
-        const djPlayer = document.getElementById('dj-audio-player');
-        const ytContainer = document.getElementById('yt-player-container-dj');
-        
-        document.getElementById('playlist-container').classList.remove('hidden');
-        document.getElementById('playlist-container').classList.add('flex');
+        let activeCategoryIndex = 0;
 
-        if (item instanceof File) {
-            // Pause YouTube and hide container
-            if(djYtPlayer && typeof djYtPlayer.pauseVideo === 'function') djYtPlayer.pauseVideo();
-            ytContainer.classList.add('hidden');
-            djPlayer.classList.remove('hidden');
-
-            djPlayer.src = URL.createObjectURL(item);
-            djPlayer.play();
-            broadcastToListeners({ type: 'meta', track: item.name, color: myStationColor, hype: globalHypeCount });
-        } else if (item.type === 'youtube') {
-            // Pause Local File and show container
-            djPlayer.pause();
-            djPlayer.classList.add('hidden');
-            ytContainer.classList.remove('hidden');
-
-            if (!djYtPlayer) {
-                djYtPlayer = new YT.Player('yt-player-dj', {
-                    height: '100%', width: '100%', videoId: item.id,
-                    playerVars: { 'autoplay': 1, 'controls': 1, 'playsinline': 1 },
-                    events: {
-                        'onReady': (event) => {
-                            event.target.setVolume(document.getElementById('music-vol').value * 100);
-                            event.target.playVideo();
-                        },
-                        'onStateChange': (event) => {
-                            clearTimeout(djYtEndTimeout);
-                            if (event.data === YT.PlayerState.ENDED) {
-                                // Wait briefly to verify it's the actual end of the video, not an ad finishing
-                                djYtEndTimeout = setTimeout(() => {
-                                    if (djYtPlayer && typeof djYtPlayer.getPlayerState === 'function') {
-                                        const state = djYtPlayer.getPlayerState();
-                                        // Move to next track if it isn't playing/buffering (e.g. state is ENDED or UNSTARTED)
-                                        if (state !== YT.PlayerState.PLAYING && state !== YT.PlayerState.BUFFERING) {
-                                            playNextTrack();
-                                        }
-                                    }
-                                }, 2000);
-                            } else if (event.data === YT.PlayerState.PLAYING) {
-                                onDJPlay();
-                            } else if (event.data === YT.PlayerState.PAUSED) {
-                                document.getElementById('vinyl-icon').classList.add('vinyl-paused');
-                                broadcastToListeners({ type: 'yt_cmd', action: 'pause' });
-                            }
-                        }
-                    }
-                });
-            } else {
-                djYtPlayer.loadVideoById(item.id);
-            }
-            broadcastToListeners({ type: 'meta', track: item.name, color: myStationColor, hype: globalHypeCount });
-            broadcastToListeners({ type: 'yt_cmd', action: 'play', videoId: item.id, time: 0 });
-        }
-        
-        renderPlaylist();
-    }
-
-    function playNextTrack() {
-        if (playlist.length === 0) return;
-        let nextIndex = currentTrackIndex + 1;
-        if (nextIndex >= playlist.length) {
-            if (isLooping) {
-                nextIndex = 0;
-            } else {
-                return; // End of playlist
-            }
-        }
-        playTrack(nextIndex);
-    }
-
-    function onDJPlay() {
-        document.getElementById('vinyl-icon').classList.remove('vinyl-paused');
-        if (playlist.length > 0) {
-            const item = playlist[currentTrackIndex];
-            broadcastToListeners({ type: 'meta', track: item.name, color: myStationColor, hype: globalHypeCount });
-            
-            if (item.type === 'youtube' && djYtPlayer && typeof djYtPlayer.getPlayerState === 'function') {
-                try {
-                    const vidObj = djYtPlayer.getVideoData();
-                    // Ensure we are playing the requested video ID, preventing broadcast of mid-roll ad times
-                    if (vidObj && vidObj.video_id && vidObj.video_id === item.id) {
-                        broadcastToListeners({ type: 'yt_cmd', action: 'play', videoId: vidObj.video_id, time: djYtPlayer.getCurrentTime() });
-                    }
-                } catch(e) {}
-            }
-        }
-    }
-
-    function toggleLoop() {
-        isLooping = !isLooping;
-        const btn = document.getElementById('btn-loop');
-        btn.classList.toggle('bg-emerald-900/50', isLooping);
-        btn.classList.toggle('text-emerald-400', isLooping);
-        btn.classList.toggle('border-emerald-500/50', isLooping);
-    }
-
-    function shufflePlaylist() {
-        if (playlist.length <= 1) return;
-        let currentFile = playlist[currentTrackIndex];
-        for (let i = playlist.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [playlist[i], playlist[j]] = [playlist[j], playlist[i]];
-        }
-        currentTrackIndex = playlist.indexOf(currentFile);
-        renderPlaylist();
-    }
-
-    function updateTempo() {
-        const val = document.getElementById('tempo-slider').value;
-        document.getElementById('dj-audio-player').playbackRate = val;
-        document.getElementById('tempo-label').innerText = parseFloat(val).toFixed(2) + 'x';
-    }
-
-    function renderPlaylist() {
-        const list = document.getElementById('playlist-list');
-        list.innerHTML = '';
-        playlist.forEach((item, i) => {
-            const el = document.createElement('div');
-            const isActive = i === currentTrackIndex;
-            const isYT = item.type === 'youtube';
-            const icon = isYT ? '📺' : '🎵';
-            el.className = `truncate cursor-pointer transition px-3 py-1.5 rounded-lg text-xs font-medium ${isActive ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-slate-400 hover:bg-slate-800 border border-transparent'}`;
-            el.innerHTML = isActive ? `<span class="animate-pulse mr-1">▶</span> ${icon} ${escapeHTML(item.name)}` : `<span class="opacity-50">${i + 1}.</span> ${icon} ${escapeHTML(item.name)}`;
-            el.onclick = () => playTrack(i);
-            list.appendChild(el);
-        });
-    }
-
-    // --- YOUTUBE LOGIC ---
-    async function searchYouTube() {
-        const query = document.getElementById('yt-search-input').value.trim();
-        if(!query) return;
-        const resContainer = document.getElementById('yt-results-container');
-        resContainer.innerHTML = '<div class="text-xs text-slate-400 p-2 text-center">Searching...</div>';
-        resContainer.classList.remove('hidden');
-        resContainer.classList.add('flex');
-
-        try {
-            const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(query)}&key=${YT_API_KEY}`);
-            const data = await res.json();
-            if(data.items && data.items.length > 0) {
-                resContainer.innerHTML = '';
-                data.items.forEach(item => {
-                    const div = document.createElement('div');
-                    const safeTitle = escapeHTML(item.snippet.title).replace(/'/g, "\\'");
-                    div.className = 'flex items-center gap-2 p-1.5 bg-slate-800/80 hover:bg-slate-700 rounded transition text-xs border border-transparent hover:border-slate-600';
-                    
-                    div.innerHTML = `
-                        <button onclick="queueYouTubeVideo('${item.id.videoId}', '${safeTitle}', false, event)" class="bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded text-[10px] shadow-sm font-bold shrink-0 transition-colors">Add to Mix</button>
-                        <img src="${item.snippet.thumbnails.default.url}" class="w-10 h-7 object-cover rounded cursor-pointer" onclick="queueYouTubeVideo('${item.id.videoId}', '${safeTitle}', true)">
-                        <span class="truncate text-slate-200 flex-1 font-medium cursor-pointer" onclick="queueYouTubeVideo('${item.id.videoId}', '${safeTitle}', true)">${escapeHTML(item.snippet.title)}</span>
-                    `;
-                    resContainer.appendChild(div);
-                });
-            } else {
-                resContainer.innerHTML = '<div class="text-xs text-slate-400 p-2 text-center">No results found.</div>';
-            }
-        } catch(e) {
-            resContainer.innerHTML = '<div class="text-xs text-red-400 p-2 text-center">Search failed.</div>';
-        }
-    }
-
-    // --- AUDIO MIXER & SYNTH FX (DJ) ---
-    function updateMixer() {
-        if (!musicGainNode || !micGainNode || !eqLow || !feedbackNode) return;
-
-        const musicVol = document.getElementById('music-vol').value;
-        const micVol = document.getElementById('mic-vol').value;
-        const echoEnabled = document.getElementById('mic-echo').checked;
-        const micFilter = document.querySelector('input[name="mic-filter"]:checked').value;
-
-        // EQ Values for local files
-        musicGainNode.gain.value = musicVol;
-        micGainNode.gain.value = micVol;
-        
-        eqLow.gain.value = document.getElementById('eq-low').value;
-        eqMid.gain.value = document.getElementById('eq-mid').value;
-        eqHigh.gain.value = document.getElementById('eq-high').value;
-        
-        feedbackNode.gain.value = echoEnabled ? 0.4 : 0; 
-        
-        // Mic FX Routing (dry/wet switching)
-        micCleanGain.gain.value = (micFilter === 'clean') ? 1 : 0;
-        micMegaGain.gain.value = (micFilter === 'mega') ? 1.5 : 0; // boost slightly
-        micSpaceGain.gain.value = (micFilter === 'space') ? 1.2 : 0;
-
-        document.getElementById('music-vol-label').innerText = `${Math.round(musicVol * 100)}%`;
-        document.getElementById('mic-vol-label').innerText = `${Math.round(micVol * 100)}%`;
-
-        // Update DJ's YouTube iframe volume directly (cannot route it through AudioContext EQ)
-        if (djYtPlayer && typeof djYtPlayer.setVolume === 'function') {
-            djYtPlayer.setVolume(Math.min(musicVol * 100, 100));
-        }
-    }
-
-    function playSynthFX(type) {
-        if(!audioCtx || !masterCompressor) return;
-        const now = audioCtx.currentTime;
-
-        if (type === 'laser') {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(880, now);
-            osc.frequency.exponentialRampToValueAtTime(110, now + 0.3);
-            gain.gain.setValueAtTime(0.3, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-            osc.connect(gain); gain.connect(masterCompressor); 
-            osc.start(now); osc.stop(now + 0.3);
-        } 
-        else if (type === 'subdrop') {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(150, now);
-            osc.frequency.exponentialRampToValueAtTime(0.01, now + 2); 
-            gain.gain.setValueAtTime(1, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 2);
-            osc.connect(gain); gain.connect(masterCompressor);
-            osc.start(now); osc.stop(now + 2);
-        }
-        else if (type === 'airhorn') {
-            const freqs = [350, 360, 370]; 
-            freqs.forEach(f => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.value = f;
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.2, now + 0.05);
-                gain.gain.setValueAtTime(0.2, now + 0.3);
-                gain.gain.linearRampToValueAtTime(0, now + 0.4);
-                osc.connect(gain); gain.connect(masterCompressor);
-                osc.start(now); osc.stop(now + 0.5);
-            });
-        }
-        else if (type === 'applause') {
-            const bufferSize = audioCtx.sampleRate * 2; 
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; // White noise
-            
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer;
-            
-            const bandpass = audioCtx.createBiquadFilter();
-            bandpass.type = 'bandpass';
-            bandpass.frequency.value = 1000;
-            
-            const gain = audioCtx.createGain();
-            gain.gain.setValueAtTime(0, now);
-            gain.gain.linearRampToValueAtTime(0.4, now + 0.2);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 2);
-            
-            noise.connect(bandpass); bandpass.connect(gain); gain.connect(masterCompressor);
-            noise.start(now);
-        }
-        else if (type === 'magic') {
-            const notes = [440, 554.37, 659.25, 880, 1108.73, 1318.51]; // A major arpeggio
-            notes.forEach((freq, i) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.value = freq;
-                
-                const startTime = now + (i * 0.1);
-                gain.gain.setValueAtTime(0, startTime);
-                gain.gain.linearRampToValueAtTime(0.15, startTime + 0.05);
-                gain.gain.exponentialRampToValueAtTime(0.01, startTime + 1.5);
-                
-                osc.connect(gain); gain.connect(masterCompressor);
-                osc.start(startTime); osc.stop(startTime + 1.5);
-            });
-        }
-    }
-
-    // Creating Impulse Response for Reverb
-    function createReverbIR(ctx) {
-        let rate = ctx.sampleRate, length = rate * 2;
-        let impulse = ctx.createBuffer(2, length, rate);
-        let l = impulse.getChannelData(0), r = impulse.getChannelData(1);
-        for (let i = 0; i < length; i++) {
-            let n = i / length; 
-            l[i] = (Math.random() * 2 - 1) * Math.pow(1 - n, 2);
-            r[i] = (Math.random() * 2 - 1) * Math.pow(1 - n, 2);
-        }
-        return impulse;
-    }
-
-    // --- LIVE RECORDING LOGIC ---
-    function toggleRecording() {
-        const btn = document.getElementById('record-btn');
-        const dot = document.getElementById('record-dot');
-        const text = document.getElementById('record-text');
-
-        if (!isRecording) {
-            try {
-                const options = { mimeType: 'audio/webm;codecs=opus' };
-                mediaRecorder = new MediaRecorder(localStream, options);
-                mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = `${myStationName.replace(/\s+/g, '_')}_Session_${new Date().toISOString().slice(0,10)}.webm`;
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 100);
-                    recordedChunks = [];
+        function renderCategories() {
+            categoriesBar.innerHTML = '';
+            categories.forEach((cat, index) => {
+                const btn = document.createElement('button');
+                btn.className = `chip ${index === activeCategoryIndex ? 'active' : ''}`;
+                btn.textContent = cat.name;
+                btn.onclick = () => {
+                    document.getElementById('sectionTitle').style.display = 'none';
+                    activeCategoryIndex = index;
+                    renderCategories();
+                    document.getElementById('searchInput').value = '';
+                    fetchVideos(cat.query);
+                    updateNav('navHome');
                 };
-                mediaRecorder.start();
-                isRecording = true;
-                
-                btn.classList.add('bg-red-900/30', 'border-red-500/50', 'text-red-400');
-                btn.classList.remove('bg-slate-800', 'border-slate-600', 'text-slate-300');
-                dot.classList.add('bg-red-500', 'recording-pulse');
-                dot.classList.remove('bg-slate-500');
-                text.innerText = "REC";
-            } catch (err) { alert("Failed to start recording: " + err.message); }
-        } else {
-            if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-            isRecording = false;
-            
-            btn.classList.remove('bg-red-900/30', 'border-red-500/50', 'text-red-400');
-            btn.classList.add('bg-slate-800', 'border-slate-600', 'text-slate-300');
-            dot.classList.remove('bg-red-500', 'recording-pulse');
-            dot.classList.add('bg-slate-500');
-            text.innerText = "RECORD";
+                categoriesBar.appendChild(btn);
+            });
         }
-    }
+        renderCategories();
 
+        function timeAgo(dateString) {
+            const date = new Date(dateString); const seconds = Math.floor((new Date() - date) / 1000);
+            let interval = Math.floor(seconds / 31536000); if (interval > 1) return interval + " yrs ago";
+            interval = Math.floor(seconds / 2592000); if (interval > 1) return interval + " mos ago";
+            interval = Math.floor(seconds / 86400); if (interval > 1) return interval + " days ago";
+            return "Just now";
+        }
 
-    // --- CHAT & DATA NETWORK LOGIC ---
-    function handleChatEnter(e, role) {
-        if (e.key === 'Enter') sendChatMessage(role);
-    }
+        // Display Loading Skeletons
+        function showSkeletons(count = 12) {
+            videoContainer.innerHTML = '';
+            for(let i=0; i<count; i++) {
+                videoContainer.innerHTML += `
+                    <div class="video-card">
+                        <div class="thumbnail-wrapper skeleton"></div>
+                        <div class="video-details">
+                            <div class="channel-avatar skeleton" style="background:none;"></div>
+                            <div class="video-text">
+                                <div class="skeleton" style="height: 16px; width: 90%; margin-bottom: 8px;"></div>
+                                <div class="skeleton" style="height: 12px; width: 60%;"></div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+        }
 
-    function sendChatMessage(role) {
-        const inputId = role === 'dj' ? 'dj-chat-input' : 'listener-chat-input';
-        const input = document.getElementById(inputId);
-        const text = input.value.trim();
-        if (!text) return;
+        async function fetchVideos(query) {
+            showSkeletons();
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=16&q=${encodeURIComponent(query)}&type=video&key=${API_KEY}`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
+                
+                // Process and format data
+                currentVideos = data.items.map(item => {
+                    const mock = getMockData(item.id.videoId);
+                    return {
+                        id: item.id.videoId,
+                        title: item.snippet.title,
+                        channel: item.snippet.channelTitle,
+                        thumb: item.snippet.thumbnails.high.url,
+                        published: timeAgo(item.snippet.publishedAt),
+                        desc: item.snippet.description,
+                        ...mock
+                    };
+                });
+                renderGrid(currentVideos);
+            } catch (error) {
+                videoContainer.innerHTML = `<div class="status-message" style="color: #ff4444;">Error: ${error.message}</div>`;
+            }
+        }
 
-        const payload = { type: 'chat', sender: myUsername, text: text, color: myStationColor };
-        
-        // With an SFU, you don't display your own message manually, you let the server echo it back to you.
-        // But for UI snappiness, we display it immediately.
-        displayChatMessage(payload.sender, payload.text, role, payload.color);
-        input.value = '';
+        function renderGrid(videos) {
+            videoContainer.innerHTML = '';
+            if (videos.length === 0) {
+                videoContainer.innerHTML = '<div class="status-message">No transmissions found.</div>'; return;
+            }
+            videos.forEach(v => {
+                const isSaved = savedLibrary.some(item => item.id === v.id);
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.innerHTML = `
+                    <div class="thumbnail-wrapper" onclick="openModal('${v.id}')">
+                        <img class="thumbnail-img" src="${v.thumb}" alt="thumb">
+                        <div class="duration-badge">${v.duration}</div>
+                        <div class="play-overlay"><div class="play-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div></div>
+                    </div>
+                    <button class="save-btn ${isSaved ? 'saved' : ''}" title="Save to Library" onclick="toggleSave(event, '${v.id}')">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                    </button>
+                    <div class="video-details" onclick="openModal('${v.id}')">
+                        <div class="channel-avatar">${v.channel.charAt(0).toUpperCase()}</div>
+                        <div class="video-text">
+                            <h3 class="video-title" title="${v.title}">${v.title}</h3>
+                            <p class="video-meta">${v.channel}</p>
+                            <p class="video-meta">${v.viewsText} views • ${v.published}</p>
+                        </div>
+                    </div>`;
+                videoContainer.appendChild(card);
+            });
+        }
 
-        broadcastToListeners(payload);
-    }
-
-    function displayChatMessage(sender, text, role, colorCode = '#10b981') {
-        const containerId = role === 'dj' ? 'dj-chat-messages' : 'listener-chat-messages';
-        const container = document.getElementById(containerId);
-        
-        const div = document.createElement('div');
-        div.className = 'chat-msg flex flex-col mb-1';
-        
-        const isMe = sender === myUsername;
-        const nameDisplay = isMe ? 'You' : escapeHTML(sender);
-        let nameStyle = isMe ? 'color: #38bdf8;' : `color: ${colorCode};`; 
-
-        div.innerHTML = `
-            <span style="${nameStyle}" class="font-bold text-[10px] uppercase tracking-wider">${nameDisplay}</span>
-            <span class="text-slate-200">${escapeHTML(text)}</span>
-        `;
-        
-        container.appendChild(div);
-        container.scrollTop = container.scrollHeight;
-    }
-
-    function broadcastToListeners(dataObj) {
-        if (!room || room.state !== 'connected') return;
-        const str = JSON.stringify(dataObj);
-        const encoded = new TextEncoder().encode(str);
-        room.localParticipant.publishData(encoded, { reliable: true });
-    }
-
-    function handleDataFromPeer(data) {
-        if (data.type === 'reaction') {
-            if(data.emoji === '🎉') fireConfetti();
-            else showFloatingEmoji(data.emoji);
+        // --- LIBRARY LOGIC ---
+        function toggleSave(e, videoId) {
+            e.stopPropagation();
+            const btn = e.currentTarget;
+            const videoData = currentVideos.find(v => v.id === videoId) || savedLibrary.find(v => v.id === videoId);
             
-            if(data.emoji === '💖') {
-                globalHypeCount++;
-                updateHypeUI();
+            const index = savedLibrary.findIndex(item => item.id === videoId);
+            if (index > -1) {
+                savedLibrary.splice(index, 1);
+                btn.classList.remove('saved');
+                btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>`;
+            } else {
+                savedLibrary.push(videoData);
+                btn.classList.add('saved');
+                btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>`;
             }
-        } else if (data.type === 'chat') {
-            // Ignore echoes of our own messages
-            if (data.sender !== myUsername) {
-                displayChatMessage(data.sender, data.text, isBroadcasting ? 'dj' : 'listener', data.color);
-            }
-        } else if (data.type === 'meta' && !isBroadcasting) {
-            document.getElementById('now-playing-container').classList.remove('hidden');
-            document.getElementById('now-playing-text').innerText = data.track;
-            if(data.color) applyThemeColorToListener(data.color);
-            if(data.hype !== undefined) {
-                globalHypeCount = data.hype;
-                updateHypeUI();
-            }
-        } else if (data.type === 'confetti') {
-            fireConfetti();
-        } else if (data.type === 'yt_cmd' && !isBroadcasting) {
-            // LISTENER SIDE: Execute YouTube sync commands from the DJ
+            localStorage.setItem('nexus_library', JSON.stringify(savedLibrary));
             
-            // Queue the command if the player is still initializing to prevent iframe crashes
-            if(!listenerYtPlayer || typeof listenerYtPlayer.loadVideoById !== 'function') {
-                if (data.action === 'play' || data.action === 'sync') {
-                    window.queuedYtCmd = data;
-                }
+            // If we are currently in the library view, re-render
+            if (document.getElementById('navLibrary').classList.contains('active')) {
+                showLibrary();
+            }
+        }
+
+        function showLibrary() {
+            updateNav('navLibrary');
+            document.getElementById('sectionTitle').style.display = 'block';
+            document.getElementById('sectionTitle').innerText = 'Your Library (Watch Later)';
+            categoriesBar.style.display = 'none';
+            videoContainer.style.display = 'grid';
+            shortsContainer.style.display = 'none';
+            currentVideos = [...savedLibrary]; // Update context so modal works correctly
+            renderGrid(savedLibrary);
+        }
+
+        function goHome() {
+            updateNav('navHome');
+            document.getElementById('sectionTitle').style.display = 'none';
+            categoriesBar.style.display = 'flex';
+            videoContainer.style.display = 'grid';
+            shortsContainer.style.display = 'none';
+            fetchVideos(categories[activeCategoryIndex].query);
+        }
+
+        function showShorts() {
+            updateNav('navShorts');
+            document.getElementById('sectionTitle').style.display = 'block';
+            document.getElementById('sectionTitle').innerText = 'Cosmic Shorts';
+            categoriesBar.style.display = 'none';
+            videoContainer.style.display = 'none';
+            shortsContainer.style.display = 'grid';
+            fetchShorts();
+        }
+
+        function updateNav(id) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // --- SHORTS LOGIC ---
+        function showShortsSkeletons(count = 12) {
+            shortsContainer.innerHTML = '';
+            for(let i=0; i<count; i++) {
+                shortsContainer.innerHTML += `
+                    <div class="short-card">
+                        <div class="short-thumbnail-wrapper skeleton"></div>
+                        <div class="skeleton" style="height: 16px; width: 90%;"></div>
+                        <div class="skeleton" style="height: 12px; width: 60%;"></div>
+                    </div>`;
+            }
+        }
+
+        async function fetchShorts() {
+            if (currentShorts.length > 0) {
+                renderShortsGrid(currentShorts);
                 return;
             }
+            
+            showShortsSkeletons();
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=18&q=space+shorts&videoDuration=short&type=video&key=${API_KEY}`;
             
             try {
-                const currentData = listenerYtPlayer.getVideoData ? listenerYtPlayer.getVideoData() : {};
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
                 
-                if (data.action === 'play' || data.action === 'sync') {
-                    // Always ensure unmuted when DJ plays
-                    if(typeof listenerYtPlayer.unMute === 'function') listenerYtPlayer.unMute();
-                    if(typeof listenerYtPlayer.setVolume === 'function') listenerYtPlayer.setVolume(document.getElementById('listener-vol-slider').value * 100);
-
-                    if (currentData.video_id !== data.videoId) {
-                         listenerYtPlayer.loadVideoById(data.videoId, data.time || 0);
-                         
-                         // Force playback if browser stalls the video load/autoplay
-                         setTimeout(() => {
-                             if(listenerYtPlayer && typeof listenerYtPlayer.getPlayerState === 'function') {
-                                 const state = listenerYtPlayer.getPlayerState();
-                                 if(state === YT.PlayerState.UNSTARTED || state === YT.PlayerState.CUED) {
-                                     listenerYtPlayer.playVideo();
-                                 }
-                             }
-                         }, 1500);
-                    } else {
-                         if (listenerYtPlayer.getPlayerState() !== YT.PlayerState.PLAYING && data.action === 'play') {
-                             listenerYtPlayer.playVideo();
-                         }
-                         
-                         if(data.time !== undefined && typeof listenerYtPlayer.getCurrentTime === 'function') {
-                             const current = listenerYtPlayer.getCurrentTime();
-                             const diff = current - data.time;
-                             
-                             // Check if out of sync by more than 4 seconds
-                             if(Math.abs(diff) > 4) {
-                                 if (data.action === 'sync') {
-                                     // For routine syncs: ONLY force a skip forward if listener is lagging behind.
-                                     if (diff < -5) {
-                                         listenerYtPlayer.seekTo(data.time);
-                                     }
-                                 } else if (data.action === 'play') {
-                                     // Protection against the "ad finishes -> song resets to 0:00" symptom.
-                                     if (!(data.time < 2 && current > 10)) {
-                                         listenerYtPlayer.seekTo(data.time);
-                                     }
-                                 }
-                             }
-                         }
-                    }
-                } else if (data.action === 'pause') {
-                    if(typeof listenerYtPlayer.pauseVideo === 'function') {
-                        listenerYtPlayer.pauseVideo();
-                    }
-                }
-            } catch(e) {
-                console.warn("YT Sync Error", e);
-            }
-        }
-    }
-
-    function updateHypeUI() {
-        if(document.getElementById('dj-hype-count')) document.getElementById('dj-hype-count').innerText = globalHypeCount;
-        if(document.getElementById('listener-hype-count')) document.getElementById('listener-hype-count').innerText = globalHypeCount;
-    }
-
-    // --- LIVEKIT JWT HELPER ---
-    function generateLiveKitToken(apiKey, apiSecret, roomName, participantName, isHost) {
-        const header = { alg: "HS256", typ: "JWT" };
-        const now = Math.floor(Date.now() / 1000);
-        const payload = {
-            iss: apiKey,
-            nbf: now,
-            exp: now + (12 * 60 * 60), // 12 hours
-            sub: participantName,
-            video: {
-                roomJoin: true,
-                room: roomName,
-                canPublish: isHost,
-                canPublishData: true,
-                canSubscribe: true
-            }
-        };
-        return KJUR.jws.JWS.sign("HS256", JSON.stringify(header), JSON.stringify(payload), {utf8: apiSecret});
-    }
-
-    // --- BROADCASTER (DJ) LOGIC ---
-    async function startBroadcaster() {
-        const lkUrl = document.getElementById('lk-url').value.trim();
-        const lkKey = document.getElementById('lk-key').value.trim();
-        const lkSecret = document.getElementById('lk-secret').value.trim();
-
-        if (!lkUrl || !lkKey || !lkSecret) {
-            alert("SFU Architecture requires a LiveKit Server URL, API Key, and Secret.");
-            return;
-        }
-
-        const nameInput = document.getElementById('station-name-input').value.trim();
-        const userInp = document.getElementById('dj-username-input').value.trim();
-        myStationColor = document.getElementById('station-color-input').value;
-        
-        myStationName = nameInput || `Radio ${Math.floor(100 + Math.random() * 900)}`;
-        myUsername = userInp || "DJ Host";
-        myStationId = 'STN-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-
-        switchView('dj-view');
-        document.getElementById('dj-station-name').innerText = myStationName;
-        document.getElementById('dj-station-name').style.color = myStationColor;
-
-        try {
-            const micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true }, video: false });
-            myMicStream = micStream;
-
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            destinationNode = audioCtx.createMediaStreamDestination();
-            
-            // Nodes Creation
-            micGainNode = audioCtx.createGain();
-            musicGainNode = audioCtx.createGain();
-            monitorGainNode = audioCtx.createGain();
-            
-            // Mic Filters
-            micCleanGain = audioCtx.createGain(); 
-            micMegaGain = audioCtx.createGain();
-            micSpaceGain = audioCtx.createGain();
-            
-            megaFilter1 = audioCtx.createBiquadFilter();
-            megaFilter1.type = 'highpass';
-            megaFilter1.frequency.value = 500;
-            megaFilter2 = audioCtx.createBiquadFilter();
-            megaFilter2.type = 'lowpass';
-            megaFilter2.frequency.value = 2500;
-            
-            spaceReverb = audioCtx.createConvolver();
-            spaceReverb.buffer = createReverbIR(audioCtx);
-
-            // 3-Band EQ
-            eqLow = audioCtx.createBiquadFilter(); eqLow.type = 'lowshelf'; eqLow.frequency.value = 250;
-            eqMid = audioCtx.createBiquadFilter(); eqMid.type = 'peaking'; eqMid.frequency.value = 1000; eqMid.Q.value = 1;
-            eqHigh = audioCtx.createBiquadFilter(); eqHigh.type = 'highshelf'; eqHigh.frequency.value = 4000;
-
-            delayNode = audioCtx.createDelay(1.0); 
-            feedbackNode = audioCtx.createGain();
-            
-            // ANTI-CLIPPING COMPRESSOR
-            masterCompressor = audioCtx.createDynamicsCompressor();
-            masterCompressor.threshold.value = -3; 
-            masterCompressor.knee.value = 10;
-            masterCompressor.ratio.value = 12; 
-            masterCompressor.attack.value = 0.005; 
-            masterCompressor.release.value = 0.1;
-            
-            delayNode.delayTime.value = 0.25; 
-            feedbackNode.gain.value = 0; 
-            
-            // --- MIC ROUTING ---
-            const micSource = audioCtx.createMediaStreamSource(micStream);
-            
-            // Split mic to filters
-            micSource.connect(micCleanGain);
-            
-            micSource.connect(megaFilter1);
-            megaFilter1.connect(megaFilter2);
-            megaFilter2.connect(micMegaGain);
-            
-            micSource.connect(spaceReverb);
-            spaceReverb.connect(micSpaceGain);
-            
-            // Combine filters to main mic gain
-            micCleanGain.connect(micGainNode);
-            micMegaGain.connect(micGainNode);
-            micSpaceGain.connect(micGainNode);
-            
-            // Mic Delay Loop
-            micGainNode.connect(delayNode);
-            delayNode.connect(feedbackNode);
-            feedbackNode.connect(delayNode);
-            
-            // Mix to Master
-            micGainNode.connect(masterCompressor);
-            delayNode.connect(masterCompressor);
-            
-            // --- MUSIC ROUTING (Local files only) ---
-            const djPlayer = document.getElementById('dj-audio-player');
-            const musicSource = audioCtx.createMediaElementSource(djPlayer);
-            musicSource.connect(musicGainNode);
-            musicGainNode.connect(eqLow);
-            eqLow.connect(eqMid);
-            eqMid.connect(eqHigh);
-            eqHigh.connect(masterCompressor);
-            
-            // Master Out
-            masterCompressor.connect(destinationNode);
-            masterCompressor.connect(monitorGainNode);
-            monitorGainNode.connect(audioCtx.destination); 
-
-            updateMixer(); 
-
-            djPlayer.addEventListener('ended', () => {
-                playNextTrack();
-            });
-
-            localStream = destinationNode.stream;
-            setupVisualizer(localStream, 'dj-visualizer', myStationColor, true);
-            
-            // Connect to LiveKit SFU Server
-            document.getElementById('station-id-display').innerText = 'CONNECTING...';
-            
-            const token = generateLiveKitToken(lkKey, lkSecret, myStationId, myUsername, true);
-            
-            room = new LivekitClient.Room({
-                adaptiveStream: false,
-                dynacast: false,
-            });
-
-            // Listen for changes in listener count from the SFU using strict LiveKit Enum events
-            room.on(LivekitClient.RoomEvent.ParticipantConnected, () => { listenerCount = room.participants.size; updateListenerCount(); });
-            room.on(LivekitClient.RoomEvent.ParticipantDisconnected, () => { listenerCount = room.participants.size; updateListenerCount(); });
-
-            // Handle incoming Data/Chat from listeners
-            room.on(LivekitClient.RoomEvent.DataReceived, (payload) => {
-                const data = JSON.parse(new TextDecoder().decode(payload));
-                handleDataFromPeer(data);
-            });
-
-            await room.connect(lkUrl, token);
-            
-            isBroadcasting = true;
-            document.getElementById('station-id-display').innerText = myStationId;
-            publishStationState();
-            setInterval(publishStationState, 30000);
-
-            // Publish Master Audio Track to the Server (Only uploads ONCE, regardless of listener count!)
-            const localAudioTrack = localStream.getAudioTracks()[0];
-            await room.localParticipant.publishTrack(localAudioTrack, {
-                name: 'master-audio',
-                source: LivekitClient.Track.Source.Microphone,
-                simulcast: false,
-            });
-
-            // Periodically sync YouTube time and listener count
-            setInterval(() => {
-                if (!isBroadcasting) return;
-
-                // Bulletproof listener count check (forces update if events were missed)
-                if (room && listenerCount !== room.participants.size) {
-                    listenerCount = room.participants.size;
-                    updateListenerCount();
-                }
-
-                if (playlist.length > 0 && djYtPlayer && typeof djYtPlayer.getPlayerState === 'function' && djYtPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
-                    try {
-                        const item = playlist[currentTrackIndex];
-                        const vidObj = djYtPlayer.getVideoData();
-                        // Only broadcast sync if the correct video is verified (protects against broadcasting mid-roll ad times)
-                        if(vidObj && vidObj.video_id && vidObj.video_id === item.id) {
-                            broadcastToListeners({ 
-                                type: 'yt_cmd', 
-                                action: 'sync', 
-                                videoId: vidObj.video_id, 
-                                time: djYtPlayer.getCurrentTime() 
-                            });
-                        }
-                    } catch(e) {}
-                }
-            }, 4000);
-
-        } catch (err) {
-            alert("Mic access required to broadcast! " + err.message);
-            location.reload();
-        }
-    }
-
-    function toggleMute() {
-        if (!myMicStream) return;
-        isMicMuted = !isMicMuted;
-        myMicStream.getAudioTracks()[0].enabled = !isMicMuted;
-        
-        const btn = document.getElementById('mute-mic-btn');
-        document.getElementById('mic-icon-on').classList.toggle('hidden', isMicMuted);
-        document.getElementById('mic-icon-off').classList.toggle('hidden', !isMicMuted);
-        
-        if (isMicMuted) {
-            btn.classList.add('bg-red-900/30', 'border-red-500/50');
-            btn.classList.remove('bg-slate-800', 'border-slate-700');
-        } else {
-            btn.classList.remove('bg-red-900/30', 'border-red-500/50');
-            btn.classList.add('bg-slate-800', 'border-slate-700');
-        }
-    }
-
-    function toggleDeafen() {
-        if (!monitorGainNode) return;
-        isDeafened = !isDeafened;
-        monitorGainNode.gain.value = isDeafened ? 0 : 1;
-        
-        const btn = document.getElementById('deafen-btn');
-        document.getElementById('deafen-icon-off').classList.toggle('hidden', isDeafened);
-        document.getElementById('deafen-icon-on').classList.toggle('hidden', !isDeafened);
-
-        if (isDeafened) {
-            btn.classList.add('bg-orange-900/30', 'border-orange-500/50');
-            btn.classList.remove('bg-slate-800', 'border-slate-700');
-        } else {
-            btn.classList.remove('bg-orange-900/30', 'border-orange-500/50');
-            btn.classList.add('bg-slate-800', 'border-slate-700');
-        }
-    }
-
-    function endBroadcast() {
-        if(isRecording) toggleRecording(); 
-        if (room) room.disconnect();
-        removeStationState();
-        setTimeout(() => location.reload(), 300); 
-    }
-
-    function updateListenerCount() {
-        document.getElementById('listener-count').innerText = listenerCount;
-        publishStationState();
-    }
-
-    // --- LISTENER LOGIC ---
-    function startListenerManual() {
-        let stationId = document.getElementById('join-id-input').value.trim().toUpperCase();
-        const lkUrl = document.getElementById('lk-url').value.trim();
-        const lkKey = document.getElementById('lk-key').value.trim();
-        const lkSecret = document.getElementById('lk-secret').value.trim();
-        if (stationId && lkUrl) startListener(stationId, "Private Station", "#06b6d4", lkUrl, lkKey, lkSecret);
-    }
-
-    async function startListener(stationId, stationName, themeColor, lkUrl, lkKey, lkSecret) {
-        if (!lkUrl) { alert("This station is missing LiveKit configuration."); return; }
-        
-        const userInp = document.getElementById('dj-username-input').value.trim();
-        myUsername = userInp || "Listener_" + Math.floor(Math.random() * 1000);
-        myStationColor = themeColor; 
-
-        if (mqttClient) mqttClient.end(); 
-
-        switchView('listener-view');
-        document.getElementById('listener-station-display').innerText = stationName;
-        applyThemeColorToListener(themeColor);
-
-        // FIX 2: Bulletproof YouTube Initialization (Waits recursively if Google scripts are slow)
-        function initRobustYTPlayer() {
-            if (!isYtApiReady) {
-                setTimeout(initRobustYTPlayer, 500); // Try again in half a second
-                return;
-            }
-            if (!listenerYtPlayer || typeof listenerYtPlayer.loadVideoById !== 'function') {
-                try {
-                    listenerYtPlayer = new YT.Player('yt-player-listener', {
-                        height: '10', width: '10',
-                        playerVars: { 'autoplay': 1, 'controls': 0, 'playsinline': 1 },
-                        events: { 
-                            'onReady': (e) => { 
-                                e.target.mute(); 
-                                if (window.queuedYtCmd) {
-                                    e.target.unMute();
-                                    e.target.setVolume(document.getElementById('listener-vol-slider').value * 100);
-                                    e.target.loadVideoById(window.queuedYtCmd.videoId, window.queuedYtCmd.time || 0);
-                                    window.queuedYtCmd = null;
-                                }
-                            },
-                            'onError': (e) => console.warn("Recoverable YT Error", e)
-                        }
-                    });
-                } catch(err) { console.error("YT Boot Failed", err); }
-            }
-        }
-        initRobustYTPlayer();
-
-        document.getElementById('listener-status-text').innerText = "Connecting to SFU Server...";
-
-        const token = generateLiveKitToken(lkKey, lkSecret, stationId, myUsername, false);
-        room = new LivekitClient.Room();
-
-        room.on(LivekitClient.RoomEvent.Disconnected, () => {
-            setListenerStateOff();
-            document.getElementById('listener-status-text').innerText = "Broadcast Ended or Disconnected.";
-        });
-
-        // When the DJ's audio track arrives from the server
-        room.on(LivekitClient.RoomEvent.TrackSubscribed, (track) => {
-            if (track.kind === 'audio') {
-                const audioPlayer = document.getElementById('audio-player');
-                track.attach(audioPlayer);
-                
-                audioPlayer.play().then(() => {
-                    setListenerStateLive();
-                    // Convert the LiveKit track back to a MediaStream for the visualizer
-                    const stream = new MediaStream([track.mediaStreamTrack]);
-                    setupVisualizer(stream, 'listener-visualizer', myStationColor, false); 
-                }).catch(e => {
-                    document.getElementById('listener-status-text').innerText = "Tap icon to start audio";
-                    document.getElementById('listener-status-icon').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 cursor-pointer hover:scale-110 transition" style="color: ${myStationColor}" viewBox="0 0 20 20" fill="currentColor" onclick="document.getElementById('audio-player').play(); if(listenerYtPlayer && typeof listenerYtPlayer.unMute === 'function'){listenerYtPlayer.unMute(); listenerYtPlayer.playVideo();} setListenerStateLive();"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>`;
+                currentShorts = data.items.map(item => {
+                    const mock = getMockData(item.id.videoId);
+                    return {
+                        id: item.id.videoId,
+                        title: item.snippet.title,
+                        channel: item.snippet.channelTitle,
+                        thumb: item.snippet.thumbnails.high.url,
+                        ...mock
+                    };
                 });
+                renderShortsGrid(currentShorts);
+            } catch (error) {
+                shortsContainer.innerHTML = `<div class="status-message" style="color: #ff4444;">Error: ${error.message}</div>`;
             }
-        });
-
-        // Handle incoming sync/chat data from the server
-        room.on(LivekitClient.RoomEvent.DataReceived, (payload) => {
-            const data = JSON.parse(new TextDecoder().decode(payload));
-            handleDataFromPeer(data);
-        });
-
-        try {
-            await room.connect(lkUrl, token);
-            document.getElementById('listener-status-text').innerText = "Buffering Audio Stream...";
-            
-            // Announce presence
-            const announce = JSON.stringify({ type: 'chat', sender: 'System', text: `${myUsername} tuned in.`});
-            room.localParticipant.publishData(new TextEncoder().encode(announce), { reliable: true });
-        } catch (e) {
-            setListenerStateOff();
-            document.getElementById('listener-status-text').innerText = "Failed to connect to SFU.";
-        }
-    }
-
-    function applyThemeColorToListener(hexColor) {
-        myStationColor = hexColor;
-        document.getElementById('listener-glow-1').style.backgroundColor = hexColor;
-        document.getElementById('listener-glow-2').style.backgroundColor = hexColor; 
-        document.getElementById('listener-send-btn').style.backgroundColor = hexColor;
-        window.currentVisualizerColor = hexColor;
-    }
-
-    function toggleListenerDeafen() {
-        const player = document.getElementById('audio-player');
-        player.muted = !player.muted;
-        const btn = document.getElementById('listener-deafen-btn');
-        const icon = document.getElementById('listener-vol-icon');
-        const slider = document.getElementById('listener-vol-slider');
-
-        if (player.muted) {
-            btn.classList.add('bg-orange-900/40', 'border-orange-500/50', 'text-orange-400');
-            btn.classList.remove('bg-slate-800', 'border-slate-600', 'text-white');
-            icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 011.414 0L10 14.586H8.414l-1.414-1.414-4.707 4.707A1 1 0 011 17v-4a1 1 0 011-1h1.586l4.707-4.707C8.923 6.663 10 7.109 10 8v5.586l1.414-1.414z" />`;
-            slider.style.opacity = '0.5';
-        } else {
-            btn.classList.remove('bg-orange-900/40', 'border-orange-500/50', 'text-orange-400');
-            btn.classList.add('bg-slate-800', 'border-slate-600', 'text-white');
-            icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />`;
-            slider.style.opacity = '1';
-        }
-    }
-
-    function updateListenerVolume() {
-        const player = document.getElementById('audio-player');
-        const val = document.getElementById('listener-vol-slider').value;
-        player.volume = val;
-        if(val > 0 && player.muted) toggleListenerDeafen();
-        
-        // Ensure YouTube volume is synced too
-        if (listenerYtPlayer && typeof listenerYtPlayer.setVolume === 'function') {
-            listenerYtPlayer.setVolume(val * 100);
-        }
-    }
-
-    function setListenerStateLive() {
-        document.getElementById('listener-status-text').innerText = "Live On Air";
-        document.getElementById('listener-status-text').style.color = myStationColor;
-        document.getElementById('buffer-bar').classList.add('hidden');
-        document.getElementById('listener-visualizer-container').classList.remove('hidden');
-        document.getElementById('reactions-bar').classList.remove('hidden');
-        document.getElementById('listener-chat-container').classList.remove('hidden');
-        
-        const iconContainer = document.getElementById('listener-status-icon');
-        iconContainer.classList.replace('bg-slate-800', 'bg-slate-900');
-        iconContainer.style.borderColor = myStationColor;
-        
-        const hex = myStationColor.replace('#','');
-        const rgba = `rgba(${parseInt(hex.substring(0,2), 16)},${parseInt(hex.substring(2,4), 16)},${parseInt(hex.substring(4,6), 16)},0.7)`;
-        
-        iconContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 pulse-ring rounded-full" style="color: ${myStationColor}; box-shadow: 0 0 0 0 ${rgba}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`;
-    }
-
-    function setListenerStateOff() {
-        document.getElementById('buffer-bar').classList.add('hidden');
-        document.getElementById('listener-visualizer-container').classList.add('hidden');
-        document.getElementById('reactions-bar').classList.add('hidden');
-        document.getElementById('listener-chat-container').classList.add('hidden');
-        document.getElementById('now-playing-container').classList.add('hidden');
-        const iconContainer = document.getElementById('listener-status-icon');
-        iconContainer.style.borderColor = '#334155'; 
-        iconContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 011.414 0L10 14.586H8.414l-1.414-1.414-4.707 4.707A1 1 0 011 17v-4a1 1 0 011-1h1.586l4.707-4.707C8.923 6.663 10 7.109 10 8v5.586l1.414-1.414z" /></svg>`;
-    }
-
-    // --- EMOJIS / REACTIONS / CONFETTI ---
-    function sendReaction(emoji) {
-        if(emoji === '🎉') fireConfetti();
-        else showFloatingEmoji(emoji);
-        
-        if (emoji === '💖') {
-            globalHypeCount++;
-            updateHypeUI();
         }
 
-        if (room && room.state === 'connected') {
-            const payload = JSON.stringify({ type: 'reaction', emoji: emoji });
-            room.localParticipant.publishData(new TextEncoder().encode(payload), { reliable: true });
-        }
-    }
-
-    function showFloatingEmoji(emoji) {
-        const el = document.createElement('div');
-        el.className = 'floating-emoji';
-        el.innerText = emoji;
-        el.style.left = `${Math.random() * 80 + 10}%`;
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 4000);
-    }
-    
-    function triggerConfettiSync() {
-        fireConfetti();
-        broadcastToListeners({ type: 'confetti' });
-    }
-
-    function fireConfetti() {
-        const colors = ['#10b981', '#06b6d4', '#ec4899', '#f59e0b', '#8b5cf6', '#ffffff'];
-        for(let i=0; i<60; i++) {
-            let conf = document.createElement('div');
-            conf.className = 'confetti-piece';
-            
-            // Random shape (square or rectangle)
-            const w = Math.random() * 8 + 4;
-            const h = Math.random() > 0.5 ? w : w * 2;
-            conf.style.width = `${w}px`;
-            conf.style.height = `${h}px`;
-            conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            
-            // Start position (center top)
-            conf.style.left = '50vw';
-            conf.style.top = '-5vh';
-            
-            // Random end position
-            const tx = (Math.random() - 0.5) * 100; // -50vw to 50vw offset
-            const ty = 110; // fall past bottom
-            const r = Math.random() * 1000 - 500; // rotation
-            
-            conf.style.transition = `transform ${Math.random() * 1.5 + 2}s cubic-bezier(.37,0,.63,1), opacity 3s`;
-            
-            document.body.appendChild(conf);
-            
-            // Trigger animation next frame
-            requestAnimationFrame(() => {
-                conf.style.transform = `translate(${tx}vw, ${ty}vh) rotate(${r}deg)`;
-                setTimeout(() => conf.style.opacity = '0', 1500); // fade out near end
+        function renderShortsGrid(videos) {
+            shortsContainer.innerHTML = '';
+            if (videos.length === 0) {
+                shortsContainer.innerHTML = '<div class="status-message">No shorts found.</div>'; return;
+            }
+            videos.forEach(v => {
+                const card = document.createElement('div');
+                card.className = 'short-card';
+                card.onclick = () => openShortsModal(v.id);
+                card.innerHTML = `
+                    <div class="short-thumbnail-wrapper">
+                        <img class="thumbnail-img" src="${v.thumb}" alt="thumb" style="object-position: center; object-fit: cover;">
+                        <div class="play-overlay"><div class="play-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div></div>
+                    </div>
+                    <h3 class="short-title" title="${v.title}">${v.title}</h3>
+                    <p class="short-meta">${v.viewsText} views</p>
+                `;
+                shortsContainer.appendChild(card);
             });
-            
-            setTimeout(() => conf.remove(), 4000);
-        }
-    }
-
-    // --- MIRRORED AUDIO VISUALIZER ---
-    window.currentVisualizerColor = null; 
-    function setupVisualizer(stream, canvasId, defaultColorHex, isMirrored) {
-        window.currentVisualizerColor = defaultColorHex;
-        const ctxAudio = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // FIX 3: Force the audio pipeline to wake up if the browser tries to suspend it
-        if (ctxAudio.state === 'suspended') {
-            ctxAudio.resume();
         }
 
-        const analyzer = ctxAudio.createAnalyser();
-        const source = ctxAudio.createMediaStreamSource(stream);
-        source.connect(analyzer);
-        
-        analyzer.fftSize = 256;
-        const bufferLength = analyzer.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-        
-        const canvas = document.getElementById(canvasId);
-        const ctx = canvas.getContext('2d');
-        
-        function draw() {
-            requestAnimationFrame(draw);
-            analyzer.getByteFrequencyData(dataArray);
-            
-            canvas.width = canvas.offsetWidth * 2;
-            canvas.height = canvas.offsetHeight * 2;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            const activeColor = window.currentVisualizerColor || '#10b981';
-            
-            const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
-            gradient.addColorStop(0, activeColor);
-            gradient.addColorStop(1, '#ffffff');
+        function openShortsModal(videoId) {
+            document.getElementById('shortsIframeContainer').innerHTML = `
+                <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+            `;
+            document.getElementById('shortsModal').classList.add('show');
+        }
 
-            const barWidth = (canvas.width / bufferLength) * (isMirrored ? 1.5 : 2.5);
-            const center = canvas.width / 2;
+        function closeShortsModal() {
+            document.getElementById('shortsModal').classList.remove('show');
+            document.getElementById('shortsIframeContainer').innerHTML = '';
+        }
 
-            for(let i = 0; i < bufferLength; i++) {
-                const barHeight = (dataArray[i] / 255) * canvas.height * 0.8; 
+        document.getElementById('closeShortsModal').addEventListener('click', closeShortsModal);
+        document.getElementById('shortsModal').addEventListener('click', (e) => {
+            if (e.target.id === 'shortsModal') closeShortsModal();
+        });
+
+        // --- FULL MODAL LOGIC ---
+        function openModal(videoId) {
+            const v = currentVideos.find(vid => vid.id === videoId) || savedLibrary.find(vid => vid.id === videoId);
+            if(!v) return;
+
+            // Render Video
+            document.getElementById('modalIframeContainer').innerHTML = `
+                <iframe src="https://www.youtube.com/embed/${v.id}?autoplay=1" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+            `;
+
+            // Render Details
+            document.getElementById('modalDetailsContainer').innerHTML = `
+                <h2 class="watch-title">${v.title}</h2>
+                <div class="watch-primary-data">
+                    <div class="watch-channel">
+                        <div class="channel-avatar" style="width:40px;height:40px;">${v.channel.charAt(0).toUpperCase()}</div>
+                        <div class="watch-channel-info">
+                            <h4>${v.channel} <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--text-muted)"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.4-1.4 3.6 3.6 7.6-7.6L19 8l-9 9z"></path></svg></h4>
+                            <p>${v.subsText} subscribers</p>
+                        </div>
+                        <button class="sub-btn" onclick="this.classList.toggle('subscribed'); this.innerText = this.classList.contains('subscribed') ? 'Subscribed' : 'Subscribe'">Subscribe</button>
+                    </div>
+                    <div class="watch-actions">
+                        <div class="action-group">
+                            <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg> ${(v.viewsRaw / 34).toFixed(0)}</button>
+                            <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform: scaleY(-1);"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg></button>
+                        </div>
+                        <button class="action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg> Share</button>
+                        <button class="action-btn" onclick="toggleSave(event, '${v.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg> Save</button>
+                    </div>
+                </div>
+                <div class="watch-description">
+                    <div class="watch-stats">${v.viewsRaw.toLocaleString()} views • Premiered ${v.published}</div>
+                    ${v.desc ? v.desc.substring(0, 250) + '...' : 'No data logs provided for this transmission.'}
+                </div>
                 
-                ctx.fillStyle = gradient;
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = activeColor;
+                <div class="comments-section">
+                    <h3>24 Comments</h3>
+                    <div class="mock-comment">
+                        <div class="mock-comment-avatar">A</div>
+                        <div class="mock-comment-content"><h5>AstroNerd99 • 2 days ago</h5><p>The resolution on these deep space captures is absolutely unreal. Incredible work!</p></div>
+                    </div>
+                    <div class="mock-comment">
+                        <div class="mock-comment-avatar">S</div>
+                        <div class="mock-comment-content"><h5>StarGazer • 1 week ago</h5><p>Does anyone know what frequency they used to intercept this feed? Amazing stuff.</p></div>
+                    </div>
+                </div>
+            `;
 
-                if (isMirrored) {
-                    const xRight = center + (i * (barWidth + 2));
-                    ctx.fillRect(xRight, canvas.height - barHeight, barWidth, barHeight);
-                    const xLeft = center - (i * (barWidth + 2)) - barWidth;
-                    ctx.fillRect(xLeft, canvas.height - barHeight, barWidth, barHeight);
-                } else {
-                    const x = i * (barWidth + 2);
-                    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-                }
-            }
+            // Render Sidebar (Filter out current video)
+            const sidebarHtml = currentVideos.filter(vid => vid.id !== v.id).slice(0, 10).map(vid => `
+                <div class="related-card" onclick="openModal('${vid.id}')">
+                    <div class="thumbnail-wrapper">
+                        <img class="thumbnail-img" src="${vid.thumb}" alt="thumb">
+                        <div class="duration-badge">${vid.duration}</div>
+                    </div>
+                    <div class="video-text">
+                        <h4 class="video-title">${vid.title}</h4>
+                        <p class="video-meta">${vid.channel}</p>
+                        <p class="video-meta">${vid.viewsText} views • ${vid.published}</p>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('modalSidebarContainer').innerHTML = `<h3 style="margin-top:0;">Up Next</h3>${sidebarHtml}`;
+
+            document.getElementById('videoModal').classList.add('show');
         }
-        draw();
-    }
-</script>
+
+        function closeVideoModal() {
+            document.getElementById('videoModal').classList.remove('show');
+            document.getElementById('modalIframeContainer').innerHTML = ''; 
+        }
+
+        document.getElementById('closeModal').addEventListener('click', closeVideoModal);
+        document.getElementById('videoModal').addEventListener('click', (e) => {
+            if (e.target.id === 'videoModal') closeVideoModal();
+        });
+
+        // Search Handlers
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            const val = document.getElementById('searchInput').value.trim();
+            if (val) { activeCategoryIndex = -1; renderCategories(); fetchVideos(val); }
+        });
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const val = document.getElementById('searchInput').value.trim();
+                if (val) { activeCategoryIndex = -1; renderCategories(); fetchVideos(val); }
+            }
+        });
+
+        // Initial Load
+        fetchVideos(categories[0].query);
+    </script>
 </body>
 </html>
