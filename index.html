@@ -319,12 +319,13 @@
             player = new YT.Player('youtube-player', {
                 height: '100%',
                 width: '100%',
+                videoId: '', // Re-added this to properly structure the iframe on load
                 playerVars: {
                     'autoplay': 1,
                     'controls': 1,
                     'rel': 0,
-                    'showinfo': 0,
-                    'origin': window.location.origin
+                    'showinfo': 0
+                    // Removed 'origin' which was causing the player to crash on local computers
                 },
                 events: {
                     'onReady': onPlayerReady,
