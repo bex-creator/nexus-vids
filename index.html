@@ -156,17 +156,47 @@
         .video-title { font-size: 16px; font-weight: 600; margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .video-meta { font-size: 13px; color: var(--text-muted); margin: 0; }
 
-        /* --- SHORTS STYLES --- */
-        .shorts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding-bottom: 50px; }
-        .short-card { display: flex; flex-direction: column; gap: 8px; cursor: pointer; position: relative; }
-        .short-thumbnail-wrapper { position: relative; width: 100%; padding-bottom: 177.77%; border-radius: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); transition: all 0.3s; }
-        .short-card:hover .short-thumbnail-wrapper { border-color: var(--accent-purple); box-shadow: 0 5px 20px rgba(157, 0, 255, 0.3); transform: translateY(-4px); }
-        .short-title { font-size: 15px; font-weight: 600; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin: 0; }
-        .short-meta { font-size: 13px; color: var(--text-muted); margin: 0; }
+        /* --- SHORTS FEED STYLES --- */
+        #shortsContainer { 
+            height: calc(100vh - 130px); 
+            overflow-y: auto; 
+            scroll-snap-type: y mandatory; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 30px; 
+            padding: 10px 0 50px; 
+            scrollbar-width: none; 
+        }
+        #shortsContainer::-webkit-scrollbar { display: none; }
+        
+        .short-feed-item { 
+            scroll-snap-align: center; 
+            width: 100%; 
+            max-width: 400px; 
+            height: calc(100vh - 180px); 
+            min-height: 500px; 
+            background: #050510; 
+            border-radius: 16px; 
+            position: relative; 
+            overflow: hidden; 
+            flex-shrink: 0; 
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        .short-placeholder {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; z-index: 0;
+        }
 
-        .shorts-modal-wrapper { position: relative; height: 90vh; width: calc(90vh * 9 / 16); max-width: 95%; display: flex; flex-direction: column; }
-        .shorts-iframe-container { width: 100%; height: 100%; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0, 229, 255, 0.15); background: #000; }
-        .shorts-iframe-container iframe { width: 100%; height: 100%; border: none; }
+        .short-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%; padding: 80px 20px 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+            z-index: 2; pointer-events: none;
+        }
+        .short-overlay h3 { margin: 0 0 10px; font-size: 16px; line-height: 1.4; text-shadow: 0 2px 4px #000; }
+        .short-overlay-meta { display: flex; align-items: center; gap: 10px; font-size: 14px; text-shadow: 0 2px 4px #000; color: #fff;}
+        .iframe-wrapper { width: 100%; height: 100%; position: relative; z-index: 1; }
 
         /* Skeletons */
         .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; border-radius: 4px; }
@@ -283,7 +313,7 @@
             <div class="categories-bar" id="categoriesBar"></div>
             <h2 id="sectionTitle" style="display:none; margin-top:0;">Your Library (Watch Later)</h2>
             <main id="videoContainer"></main>
-            <main id="shortsContainer" class="shorts-grid" style="display:none;"></main>
+            <main id="shortsContainer" style="display:none;"></main>
         </div>
     </div>
 
@@ -301,14 +331,6 @@
                 <h3 style="margin-top:0;">Up Next</h3>
                 <!-- Related videos go here -->
             </div>
-        </div>
-    </div>
-
-    <!-- Vertical Shorts Modal -->
-    <div id="shortsModal" class="modal">
-        <div class="shorts-modal-wrapper">
-            <span class="close-btn" id="closeShortsModal" style="right: -40px; top: -10px;">&times;</span>
-            <div class="shorts-iframe-container" id="shortsIframeContainer"></div>
         </div>
     </div>
 
@@ -476,6 +498,7 @@
 
         function showLibrary() {
             updateNav('navLibrary');
+            document.body.style.overflow = ''; // Restore page scroll
             document.getElementById('sectionTitle').style.display = 'block';
             document.getElementById('sectionTitle').innerText = 'Your Library (Watch Later)';
             categoriesBar.style.display = 'none';
@@ -487,6 +510,7 @@
 
         function goHome() {
             updateNav('navHome');
+            document.body.style.overflow = ''; // Restore page scroll
             document.getElementById('sectionTitle').style.display = 'none';
             categoriesBar.style.display = 'flex';
             videoContainer.style.display = 'grid';
@@ -496,11 +520,11 @@
 
         function showShorts() {
             updateNav('navShorts');
-            document.getElementById('sectionTitle').style.display = 'block';
-            document.getElementById('sectionTitle').innerText = 'Cosmic Shorts';
+            document.body.style.overflow = 'hidden'; // Lock main scroll for the immersive shorts feed
+            document.getElementById('sectionTitle').style.display = 'none';
             categoriesBar.style.display = 'none';
             videoContainer.style.display = 'none';
-            shortsContainer.style.display = 'grid';
+            shortsContainer.style.display = 'flex';
             fetchShorts();
         }
 
@@ -510,15 +534,30 @@
         }
 
         // --- SHORTS LOGIC ---
-        function showShortsSkeletons(count = 12) {
+        // Observer to only load the video player when it's snapped into view
+        let shortsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const videoId = entry.target.dataset.videoId;
+                const iframeWrapper = entry.target.querySelector('.iframe-wrapper');
+                
+                if (entry.isIntersecting) {
+                    if (iframeWrapper.innerHTML === '') {
+                        iframeWrapper.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=1" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen style="width:100%; height:100%; border:none;"></iframe>`;
+                    }
+                } else {
+                    // Destroy iframe when scrolled away to stop audio
+                    iframeWrapper.innerHTML = '';
+                }
+            });
+        }, {
+            root: shortsContainer,
+            threshold: 0.5 
+        });
+
+        function showShortsSkeletons(count = 5) {
             shortsContainer.innerHTML = '';
             for(let i=0; i<count; i++) {
-                shortsContainer.innerHTML += `
-                    <div class="short-card">
-                        <div class="short-thumbnail-wrapper skeleton"></div>
-                        <div class="skeleton" style="height: 16px; width: 90%;"></div>
-                        <div class="skeleton" style="height: 12px; width: 60%;"></div>
-                    </div>`;
+                shortsContainer.innerHTML += `<div class="short-feed-item skeleton" style="border:none; box-shadow:none;"></div>`;
             }
         }
 
@@ -537,13 +576,11 @@
                 if (data.error) throw new Error(data.error.message);
                 
                 currentShorts = data.items.map(item => {
-                    const mock = getMockData(item.id.videoId);
                     return {
                         id: item.id.videoId,
                         title: item.snippet.title,
                         channel: item.snippet.channelTitle,
-                        thumb: item.snippet.thumbnails.high.url,
-                        ...mock
+                        thumb: item.snippet.thumbnails.high.url
                     };
                 });
                 renderShortsGrid(currentShorts);
@@ -558,37 +595,27 @@
                 shortsContainer.innerHTML = '<div class="status-message">No shorts found.</div>'; return;
             }
             videos.forEach(v => {
-                const card = document.createElement('div');
-                card.className = 'short-card';
-                card.onclick = () => openShortsModal(v.id);
-                card.innerHTML = `
-                    <div class="short-thumbnail-wrapper">
-                        <img class="thumbnail-img" src="${v.thumb}" alt="thumb" style="object-position: center; object-fit: cover;">
-                        <div class="play-overlay"><div class="play-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div></div>
+                const item = document.createElement('div');
+                item.className = 'short-feed-item';
+                item.dataset.videoId = v.id;
+                
+                item.innerHTML = `
+                    <img src="${v.thumb}" alt="thumb" class="short-placeholder">
+                    <div class="iframe-wrapper"></div>
+                    <div class="short-overlay">
+                        <h3>${v.title}</h3>
+                        <div class="short-overlay-meta">
+                            <div class="channel-avatar" style="width:28px;height:28px;">${v.channel.charAt(0)}</div>
+                            <span>${v.channel}</span>
+                        </div>
                     </div>
-                    <h3 class="short-title" title="${v.title}">${v.title}</h3>
-                    <p class="short-meta">${v.viewsText} views</p>
                 `;
-                shortsContainer.appendChild(card);
+                shortsContainer.appendChild(item);
+                
+                // Observe this new short to trigger auto-play logic
+                shortsObserver.observe(item);
             });
         }
-
-        function openShortsModal(videoId) {
-            document.getElementById('shortsIframeContainer').innerHTML = `
-                <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
-            `;
-            document.getElementById('shortsModal').classList.add('show');
-        }
-
-        function closeShortsModal() {
-            document.getElementById('shortsModal').classList.remove('show');
-            document.getElementById('shortsIframeContainer').innerHTML = '';
-        }
-
-        document.getElementById('closeShortsModal').addEventListener('click', closeShortsModal);
-        document.getElementById('shortsModal').addEventListener('click', (e) => {
-            if (e.target.id === 'shortsModal') closeShortsModal();
-        });
 
         // --- FULL MODAL LOGIC ---
         function openModal(videoId) {
